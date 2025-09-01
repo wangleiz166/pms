@@ -1,0 +1,244 @@
+/* 甘特图样式 - 重新设计 */
+.gantt-container {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.gantt-chart {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-header {
+    display: flex;
+    background: #ffffff;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.gantt-task-header {
+    width: 200px;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    border-right: 1px solid #e9ecef;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+}
+
+.gantt-timeline-header {
+    flex: 1;
+    display: flex;
+    background: #f8f9fa;
+}
+
+.gantt-month {
+    flex: 1;
+    padding: 16px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    border-right: 1px solid #e9ecef;
+    min-width: 80px;
+}
+
+.gantt-month:last-child {
+    border-right: none;
+}
+
+.gantt-body {
+    background: white;
+}
+
+.gantt-row {
+    display: flex;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+.gantt-row:hover {
+    background-color: #f8f9fa;
+}
+
+.gantt-row:last-child {
+    border-bottom: none;
+}
+
+.gantt-task-name {
+    width: 200px;
+    padding: 20px;
+    border-right: 1px solid #e9ecef;
+    background: white;
+    font-weight: 500;
+    font-size: 14px;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+}
+
+.gantt-timeline {
+    flex: 1;
+    position: relative;
+    height: 60px;
+    background: #fafbfc;
+    display: flex;
+}
+
+.gantt-month-column {
+    flex: 1;
+    border-right: 1px solid #e9ecef;
+    position: relative;
+    min-width: 80px;
+}
+
+.gantt-month-column:last-child {
+    border-right: none;
+}
+
+.gantt-bar {
+    position: absolute;
+    height: 32px;
+    top: 14px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(66, 133, 244, 0.3);
+    background: linear-gradient(135deg, #4285f4, #1a73e8);
+}
+
+.gantt-bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+}
+
+/* 滚动条样式 */
+.gantt-scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.gantt-scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.gantt-scroll-container::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 4px;
+}
+
+.gantt-scroll-container::-webkit-scrollbar-thumb {
+    background: #9aa0a6;
+    border-radius: 4px;
+}
+
+.gantt-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #5f6368;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .gantt-container {
+        padding: 16px;
+        margin: 10px 0;
+    }
+    
+    .gantt-title {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .gantt-task-header,
+    .gantt-task-name {
+        width: 150px;
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+    
+    .gantt-month {
+        min-width: 60px;
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+    
+    .gantt-timeline {
+        height: 50px;
+    }
+    
+    .gantt-bar {
+        height: 28px;
+        top: 11px;
+        font-size: 11px;
+    }
+}
+
+/* 动画效果 */
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.gantt-row {
+    animation: slideInFromLeft 0.3s ease-out;
+}
+
+.gantt-bar {
+    animation: slideInFromLeft 0.5s ease-out;
+}
+
+/* 工具提示样式 */
+.gantt-tooltip {
+    position: absolute;
+    background: #2c3e50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.gantt-tooltip.show {
+    opacity: 1;
+}
+
+.gantt-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #2c3e50 transparent transparent transparent;
+}
