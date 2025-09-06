@@ -1,0 +1,68 @@
+<!-- 左侧导航栏 -->
+<nav class="sidebar-nav">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">品</div>
+            <span>项目管理系统</span>
+        </div>
+    </div>
+    
+    <div class="sidebar-menu">
+        <a href="#" class="sidebar-menu-item nav-item active" onclick="switchPage('timesheet')">
+            <span class="sidebar-menu-icon">📝</span>
+            <span>工时管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('project-management')">
+            <span class="sidebar-menu-icon">📊</span>
+            <span>项目管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('staff-management')">
+            <span class="sidebar-menu-icon">👥</span>
+            <span>人员管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('approval-center')">
+            <span class="sidebar-menu-icon">✅</span>
+            <span>审核中心</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('team-management')">
+            <span class="sidebar-menu-icon">👥</span>
+            <span>团队管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('financial-management')">
+            <span class="sidebar-menu-icon">💰</span>
+            <span>财务管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('business-management')">
+            <span class="sidebar-menu-icon">💼</span>
+            <span>商务管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="openReportManagement()">
+            <span class="sidebar-menu-icon">📈</span>
+            <span>报表管理</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="openProjectDashboard()">
+            <span class="sidebar-menu-icon">📊</span>
+            <span>项目大屏</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="openAIAssistant()">
+            <span class="sidebar-menu-icon">🤖</span>
+            <span>智能问数</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('task-scheduler')">
+            <span class="sidebar-menu-icon">⏰</span>
+            <span>计划任务</span>
+        </a>
+        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('system-management')">
+            <span class="sidebar-menu-icon">⚙️</span>
+            <span>系统管理</span>
+        </a>
+    </div>
+    
+    <div class="sidebar-user">
+        <div class="user-info">
+            <div class="user-avatar" onclick="logout()">王</div>
+            <div class="user-name" id="currentUser">王磊</div>
+        </div>
+    </div>
+</nav>
+

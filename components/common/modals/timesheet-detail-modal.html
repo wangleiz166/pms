@@ -1,0 +1,25 @@
+<!-- 工时详情查看弹窗 -->
+<div id="timesheetDetailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">工时详情</h3>
+            <button class="close-btn" onclick="closeTimesheetDetailModal()">&times;</button>
+        </div>
+        
+        <div class="timesheet-detail-content">
+            <div class="detail-date-info">
+                <div class="detail-date-label">日期</div>
+                <div class="detail-date-value" id="detailDate">--</div>
+            </div>
+            
+            <div class="detail-reports-list" id="detailReportsList">
+                <!-- 工时详情卡片将通过JS动态加载 -->
+            </div>
+            
+            <div class="detail-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeTimesheetDetailModal()">返回</button>
+            </div>
+        </div>
+    </div>
+</div>
+

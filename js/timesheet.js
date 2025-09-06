@@ -225,13 +225,17 @@ async function submitTimesheet(event) {
 // 获取并显示报工数据
 async function fetchAndDisplayReports() {
     try {
+        console.log('开始获取报工数据...');
         const response = await fetch(`${API_URL}/reports`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const reports = await response.json();
+        console.log('获取到的报工数据:', reports);
         updateCalendar(reports);
+        console.log('报工数据加载完成');
     } catch (error) {
+        console.error('加载报工数据失败:', error);
         showNotification(`加载报工数据失败: ${error.message}`, 'error');
     }
 }
@@ -330,6 +334,8 @@ function updateTrendInfo(stats) {
 
 // 更新日历视图
 function updateCalendar(reports) {
+    console.log('开始更新日历视图，报工数据:', reports);
+    
     // 清除旧的状态点
     document.querySelectorAll('.calendar-status').forEach(el => el.innerHTML = '');
 
@@ -340,10 +346,13 @@ function updateCalendar(reports) {
         return acc;
     }, {});
 
+    console.log('报工日期映射:', reportCounts);
+
     // 在日历上添加状态点并修改点击事件
     Object.keys(reportCounts).forEach(date => {
         const cell = document.querySelector(`td[onclick*="'${date}'"]`);
         if (cell) {
+            console.log(`找到日期 ${date} 的单元格，添加状态点`);
             const statusContainer = cell.querySelector('.calendar-status');
             if (statusContainer) {
                 // 获取该日期的所有报工记录
@@ -360,6 +369,8 @@ function updateCalendar(reports) {
                         dot.className = 'status-dot status-completed'; // 绿色点 - 已审核
                     } else if (report.status === 2) {
                         dot.className = 'status-dot status-rejected'; // 红色点 - 已驳回
+                    } else if (report.status === 4) {
+                        dot.className = 'status-dot status-leave'; // 蓝色点 - 请假
                     } else {
                         dot.className = 'status-dot status-pending'; // 黄色点 - 待审核
                     }
@@ -383,7 +394,7 @@ function updateCalendar(reports) {
         }
     });
     
-    console.log('日历视图已更新');
+    console.log('日历视图已更新完成');
 }
 
 // 打开工时详情查看模态框
@@ -394,8 +405,19 @@ async function openTimesheetDetailModal(date) {
     
     if (!modal || !detailDate || !reportsList) return;
     
-    // 设置日期
-    detailDate.textContent = date;
+    // 设置日期，确保格式正确
+    if (date) {
+        // 格式化日期显示
+        const dateObj = new Date(date);
+        const formattedDate = dateObj.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        detailDate.textContent = formattedDate;
+    } else {
+        detailDate.textContent = '--';
+    }
     
     // 显示模态框
     modal.classList.add('show');
@@ -423,7 +445,15 @@ async function openTimesheetDetailModal(date) {
         } else {
             // 显示报工详情卡片
             reports.forEach(report => {
+                try { console.log('Timesheet detail status:', report.status, typeof report.status, report); } catch(e) {}
                 const days = (report.hours_spent / 8).toFixed(1);
+                // 统一状态渲染（兼容后端可能返回字符串/未设置4的情况）
+                let statusLabelText = getStatusText(report.status);
+                let statusLabelClass = getStatusClass(report.status);
+                if (Number(report.status) !== 4 && typeof report.task_description === 'string' && report.task_description.trim() === '请假') {
+                    statusLabelText = '请假';
+                    statusLabelClass = 'status-leave';
+                }
                 const reportCard = document.createElement('div');
                 reportCard.className = 'report-detail-card';
                 reportCard.innerHTML = `
@@ -452,10 +482,16 @@ async function openTimesheetDetailModal(date) {
                         </div>
                         <div class="report-status">
                             <span>📊</span>
-                            <span class="status-label ${getStatusClass(report.status)}">${getStatusText(report.status)}</span>
+                            <span class="status-label ${statusLabelClass}">${statusLabelText}</span>
                         </div>
                     </div>
                 `;
+                // 再次强制规范状态元素，避免历史类名残留（如 pending/approved）
+                const statusEl = reportCard.querySelector('.status-label');
+                if (statusEl) {
+                    statusEl.className = `status-label ${statusLabelClass}`;
+                    statusEl.textContent = statusLabelText;
+                }
                 reportsList.appendChild(reportCard);
             });
         }
@@ -481,19 +517,43 @@ function closeTimesheetDetailModal() {
 
 // 状态辅助函数
 function getStatusText(status) {
-    switch (status) {
+    // 兼容字符串状态
+    if (typeof status === 'string') {
+        const key = status.toLowerCase();
+        if (key === 'pending') return '待审核';
+        if (key === 'approved') return '已通过';
+        if (key === 'rejected') return '已驳回';
+        if (key === 'leave') return '请假';
+        const maybeNum = Number(status);
+        if (!Number.isNaN(maybeNum)) status = maybeNum;
+    }
+    const s = Number(status);
+    switch (s) {
         case 0: return '待审核';
         case 1: return '已通过';
         case 2: return '已驳回';
+        case 4: return '请假';
         default: return '未知状态';
     }
 }
 
 function getStatusClass(status) {
-    switch (status) {
+    // 兼容字符串状态
+    if (typeof status === 'string') {
+        const key = status.toLowerCase();
+        if (key === 'pending') return 'status-pending';
+        if (key === 'approved') return 'status-approved';
+        if (key === 'rejected') return 'status-rejected';
+        if (key === 'leave') return 'status-leave';
+        const maybeNum = Number(status);
+        if (!Number.isNaN(maybeNum)) status = maybeNum;
+    }
+    const s = Number(status);
+    switch (s) {
         case 0: return 'status-pending';
         case 1: return 'status-approved';
         case 2: return 'status-rejected';
+        case 4: return 'status-leave';
         default: return 'unknown';
     }
 }
@@ -510,4 +570,20 @@ window.changeMonth = changeMonth;
 window.submitTimesheet = submitTimesheet;
 window.loadMonthlyStats = loadMonthlyStats;
 window.fetchAndDisplayReports = fetchAndDisplayReports;
+
+/**
+ * 初始化工时表页面
+ * 该函数将在页面加载时调用，用于获取和显示所有必要的数据。
+ */
+function initializeTimesheetPage() {
+    console.log('Initializing Timesheet Page...');
+    if (typeof fetchAndDisplayReports === 'function') {
+        fetchAndDisplayReports();
+    }
+    if (typeof loadMonthlyStats === 'function') {
+        loadMonthlyStats();
+    }
+}
+
+window.initializeTimesheetPage = initializeTimesheetPage;
 

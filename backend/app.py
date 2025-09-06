@@ -28,14 +28,82 @@ def db_test():
     else:
         return jsonify({'status': 'error', 'message': 'Database connection failed.'}), 500
 
+# 人员管理API
 @app.route('/api/employees', methods=['GET'])
 def get_employees():
+    """获取员工列表"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    search = request.args.get('search', '', type=str)
+    
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, name FROM employees ORDER BY name")
+        # 构建查询条件
+        where_clause = ""
+        params = []
+        if search:
+            where_clause = "WHERE e.name LIKE %s OR d.dept_name LIKE %s"
+            params = [f'%{search}%', f'%{search}%']
+        
+        # 获取总数
+        count_query = f"""
+            SELECT COUNT(*) 
+            FROM employees e 
+            LEFT JOIN departments d ON e.department_id = d.id 
+            {where_clause}
+        """
+        cursor.execute(count_query, params)
+        total = cursor.fetchone()[0]
+        
+        # 计算分页
+        offset = (page - 1) * per_page
+        total_pages = (total + per_page - 1) // per_page
+        
+        # 获取员工数据
+        query = f"""
+            SELECT e.id, e.name, e.role, d.dept_name as department
+            FROM employees e 
+            LEFT JOIN departments d ON e.department_id = d.id 
+            {where_clause}
+            ORDER BY e.id DESC 
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(query, params + [per_page, offset])
         employees = cursor.fetchall()
-        return jsonify(employees)
+        
+        # 转换为字典格式
+        employee_list = []
+        for emp in employees:
+            employee_list.append({
+                'id': emp[0],
+                'name': emp[1],
+                'role': emp[2] or '未设置',
+                'department': emp[3] or '未分配部门'
+            })
+        
+        return jsonify({
+            'employees': employee_list,
+            'total': total,
+            'page': page,
+            'pages': total_pages
+        })
+        
+    except Error as e:
+        return jsonify({'message': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/departments', methods=['GET'])
+def get_departments():
+    """获取部门列表"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, dept_name FROM departments ORDER BY dept_name")
+        departments = cursor.fetchall()
+        return jsonify([{'id': dept[0], 'name': dept[1]} for dept in departments])
     except Error as e:
         return jsonify({'message': str(e)}), 500
     finally:
@@ -47,9 +115,28 @@ def get_projects():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT id, project_code, project_name FROM projects ORDER BY project_code")
+        cursor.execute("SELECT id, project_code, project_name, status FROM projects ORDER BY project_code")
         projects = cursor.fetchall()
         return jsonify(projects)
+    except Error as e:
+        return jsonify({'message': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/projects/<int:project_id>', methods=['PUT'])
+def update_project(project_id):
+    """更新项目信息"""
+    data = request.get_json()
+    project_name = data['project_name']
+    status = data['status']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE projects SET project_name = %s, status = %s WHERE id = %s", (project_name, status, project_id))
+        conn.commit()
+        return jsonify({'message': 'Project updated successfully'}), 200
     except Error as e:
         return jsonify({'message': str(e)}), 500
     finally:
@@ -60,57 +147,43 @@ def get_projects():
 def get_projects_detailed():
     """获取项目管理的详细信息"""
     conn = get_db_connection()
+    if not conn:
+        return jsonify({'message': 'Database connection failed.'}), 500
+
     cursor = conn.cursor(dictionary=True)
     try:
-        # 获取项目基本信息
-        cursor.execute("""
+        # 使用 LEFT JOIN 和 GROUP BY 优化查询，一次性获取所有数据
+        query = """
             SELECT 
                 p.id,
                 p.project_code,
                 p.project_name,
                 p.status
-            FROM projects p
-            ORDER BY p.project_code
-        """)
+            FROM 
+                projects p
+            GROUP BY
+                p.id, p.project_code, p.project_name, p.status
+            ORDER BY 
+                p.project_code;
+        """
+        cursor.execute(query)
         projects = cursor.fetchall()
-        
-        # 为每个项目添加统计信息
-        for project in projects:
-            # 计算项目进度（基于工时）
-            cursor.execute("""
-                SELECT 
-                    COALESCE(SUM(hours_spent), 0) as total_hours,
-                    COALESCE(COUNT(DISTINCT DATE(report_date)), 0) as working_days
-                FROM work_reports 
-                WHERE project_id = %s
-            """, (project['id'],))
-            
-            stats = cursor.fetchone()
-            project['total_hours'] = float(stats['total_hours'])
-            project['working_days'] = stats['working_days']
-            
-            # 模拟项目进度（这里可以根据实际需求调整）
-            if project['status'] == 'Completed':
-                project['progress'] = 100
-            elif project['status'] == 'Active':
-                # 基于工时估算进度，这里简化处理
-                project['progress'] = min(project['total_hours'] * 2, 90)  # 假设每50小时完成10%进度
-            else:
-                project['progress'] = 0
-            
-            # 设置项目经理（这里简化处理，实际应该有项目经理表）
-            project['project_manager'] = '傅靖刚'  # 默认项目经理
-            
-            # 设置项目日期（这里简化处理，因为表中没有时间字段）
-            project['start_date'] = '2025-01-01'
-            project['end_date'] = '2025-12-31'
-        
-        return jsonify(projects)
+
+        # 返回包含分页信息的对象
+        return jsonify({
+            'projects': projects,
+            'total': len(projects),
+            'page': 1,
+            'pages': 1
+        })
+
     except Error as e:
-        return jsonify({'message': str(e)}), 500
+        print(f"Database error in get_projects_detailed: {e}")
+        return jsonify({'message': f'An error occurred: {e}'}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
 
 @app.route('/api/reports', methods=['POST'])
 def submit_report():
@@ -148,9 +221,10 @@ def get_reports():
         FROM work_reports wr
         JOIN employees e ON wr.employee_id = e.id
         JOIN projects p ON wr.project_id = p.id
+        WHERE wr.employee_id = %s
         ORDER BY wr.report_date DESC
         """
-        cursor.execute(query)
+        cursor.execute(query, (1,))
         reports = cursor.fetchall()
         for report in reports:
             if 'report_date' in report and report['report_date']:
@@ -181,10 +255,10 @@ def get_reports_by_date(date):
         FROM work_reports wr
         JOIN employees e ON wr.employee_id = e.id
         JOIN projects p ON wr.project_id = p.id
-        WHERE wr.report_date = %s
+        WHERE wr.report_date = %s AND wr.employee_id = %s
         ORDER BY wr.id DESC
         """
-        cursor.execute(query, (date,))
+        cursor.execute(query, (date, 1))
         reports = cursor.fetchall()
         for report in reports:
             if 'report_date' in report and report['report_date']:
@@ -269,8 +343,8 @@ def get_pending_reports():
         cursor.execute("""
             SELECT COUNT(*) as total
             FROM work_reports 
-            WHERE status = 0
-        """)
+            WHERE status = 0 AND employee_id = %s
+        """, (1,))
         total_count = cursor.fetchone()['total']
         
         # 获取待审核的报工记录（分页）
@@ -289,10 +363,10 @@ def get_pending_reports():
             FROM work_reports wr
             JOIN employees e ON wr.employee_id = e.id
             JOIN projects p ON wr.project_id = p.id
-            WHERE wr.status = 0
+            WHERE wr.status = 0 AND wr.employee_id = %s
             ORDER BY wr.report_date DESC, wr.id DESC
             LIMIT %s OFFSET %s
-        """, (per_page, offset))
+        """, (1, per_page, offset))
         
         reports = cursor.fetchall()
         

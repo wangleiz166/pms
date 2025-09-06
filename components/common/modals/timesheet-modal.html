@@ -1,0 +1,50 @@
+<!-- 工时填报弹窗 -->
+<div id="timesheetModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">工时填报</h3>
+            <button class="close-btn" onclick="closeTimesheetModal()">&times;</button>
+        </div>
+        
+        <form id="timesheetForm" onsubmit="submitTimesheet(event)">
+            <div class="form-group">
+                <label class="form-label required">日期</label>
+                <input type="date" class="form-control" id="workDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">项目选择</label>
+                <div class="project-search">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="form-control search-input" placeholder="搜索项目..." id="projectSearch" oninput="filterProjects()">
+                </div>
+                <div class="project-list" id="projectList">
+                    <!-- 项目将通过JS动态加载 -->
+                </div>
+                <input type="hidden" id="selectedProject" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">工作内容</label>
+                <textarea class="form-control form-textarea" id="workContent" placeholder="请详细描述今日工作内容..." required></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">工时</label>
+                    <input type="number" class="form-control" id="workHours" placeholder="8" step="0.5" min="0" max="24" required oninput="calculateDays()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">人天</label>
+                    <input type="text" class="form-control" id="workDays" placeholder="1.0" readonly>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: right;">
+                <button type="button" class="btn btn-secondary" onclick="closeTimesheetModal()">取消</button>
+                <button type="submit" class="btn btn-secondary" style="margin-left: 10px;">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+

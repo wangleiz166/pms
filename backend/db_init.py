@@ -21,6 +21,7 @@ def setup_database():
         """)
         print("Table 'employees' created or already exists.")
 
+        # 创建 projects 表 (先删除旧的，再创建新的)
         # 创建 projects 表
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS projects (
@@ -32,16 +33,16 @@ def setup_database():
         """)
         print("Table 'projects' created or already exists.")
 
-        # 修改 work_reports 表 (先删除旧的，再创建新的)
-        cursor.execute("DROP TABLE IF EXISTS work_reports")
+        # 创建 work_reports 表
         cursor.execute("""
-        CREATE TABLE work_reports (
+        CREATE TABLE IF NOT EXISTS work_reports (
             id INT AUTO_INCREMENT PRIMARY KEY,
             employee_id INT NOT NULL,
             project_id INT NOT NULL,
             task_description TEXT NOT NULL,
             hours_spent DECIMAL(5, 2) NOT NULL,
             report_date DATE NOT NULL,
+            status INT DEFAULT 0,  -- 0: pending, 1: approved, 2: rejected
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id),
             FOREIGN KEY (project_id) REFERENCES projects(id)
@@ -50,8 +51,12 @@ def setup_database():
         print("Table 'work_reports' created successfully.")
 
         # 插入初始数据
-        print("Seeding data...")
-        seed_data(cursor)
+        print("Seeding base data...")
+        seed_base_data(cursor)
+        conn.commit()
+
+        print("Seeding work reports data...")
+        seed_work_reports_data(cursor)
         conn.commit()
         print("Data seeding completed.")
 
@@ -63,7 +68,7 @@ def setup_database():
             conn.close()
             print("Database connection closed.")
 
-def seed_data(cursor):
+def seed_base_data(cursor):
     """插入初始员工和项目数据"""
     employees_to_add = [
         ('王磊', '开发工程师'),
@@ -78,6 +83,18 @@ def seed_data(cursor):
         ('P202501INP0003', 'IN-IT-内部管理2025', 'Completed')
     ]
     cursor.executemany("INSERT IGNORE INTO projects (project_code, project_name, status) VALUES (%s, %s, %s)", projects_to_add)
+
+def seed_work_reports_data(cursor):
+    """插入工时报告的种子数据"""
+    work_reports_to_add = [
+        (1, 1, '完成登录页面开发', 8.00, '2025-08-01', 1),
+        (1, 2, '项目周会和计划制定', 4.00, '2025-08-01', 1),
+        (2, 2, '梳理项目需求', 8.00, '2025-08-02', 1),
+        (1, 1, '修复数据加载bug', 6.00, '2025-08-03', 0),
+        (3, 3, '编写测试用例', 8.00, '2025-08-04', 1),
+        (1, 2, '更新项目文档', 3.00, '2025-08-05', 0)
+    ]
+    cursor.executemany("INSERT IGNORE INTO work_reports (employee_id, project_id, task_description, hours_spent, report_date, status) VALUES (%s, %s, %s, %s, %s, %s)", work_reports_to_add)
 
 if __name__ == '__main__':
     setup_database()

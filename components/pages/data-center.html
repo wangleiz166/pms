@@ -1,0 +1,158 @@
+<!-- 数据中心页面 -->
+<div id="data-centerPage" class="page">
+    <div class="page-header">
+        <h1>数据中心</h1>
+    </div>
+
+    <div class="page-content">
+        <!-- 标签页导航 -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchDataTab('cleaning')">数据清洗</button>
+            <button class="tab-btn" onclick="switchDataTab('sync')">数据同步</button>
+        </div>
+
+        <!-- 数据清洗标签页 -->
+        <div id="data-cleaning" class="tab-content active">
+            <div class="tab-header">
+                <h3>数据清洗</h3>
+                <button class="btn btn-primary" onclick="createDataTask('cleaning')">
+                    <span class="btn-icon">+</span>
+                    创建清洗任务
+                </button>
+            </div>
+            
+            <div class="data-stats">
+                <div class="stat-card">
+                    <div class="stat-title">待处理数据</div>
+                    <div class="stat-value">1,234</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">已清洗数据</div>
+                    <div class="stat-value">5,678</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">清洗成功率</div>
+                    <div class="stat-value">98.5%</div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>任务名称</th>
+                            <th>数据源</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>完成时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>用户数据清洗</td>
+                            <td>用户表</td>
+                            <td><span class="status-badge status-completed">已完成</span></td>
+                            <td>2025-01-15 09:00</td>
+                            <td>2025-01-15 09:30</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn view-btn" onclick="viewDataTask('clean-001')">查看</button>
+                                    <button class="action-btn edit-btn" onclick="editDataTask('clean-001')">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteDataTask('clean-001')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 数据同步标签页 -->
+        <div id="data-sync" class="tab-content">
+            <div class="tab-header">
+                <h3>数据同步</h3>
+                <button class="btn btn-primary" onclick="createDataTask('sync')">
+                    <span class="btn-icon">+</span>
+                    创建同步任务
+                </button>
+            </div>
+            
+            <div class="data-stats">
+                <div class="stat-card">
+                    <div class="stat-title">同步任务</div>
+                    <div class="stat-value">12</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">成功同步</div>
+                    <div class="stat-value">1,456</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">同步成功率</div>
+                    <div class="stat-value">99.2%</div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>任务名称</th>
+                            <th>源系统</th>
+                            <th>目标系统</th>
+                            <th>状态</th>
+                            <th>最后同步</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>项目数据同步</td>
+                            <td>CRM系统</td>
+                            <td>PMS系统</td>
+                            <td><span class="status-badge status-active">运行中</span></td>
+                            <td>2025-01-15 10:30</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn view-btn" onclick="viewDataTask('sync-001')">查看</button>
+                                    <button class="action-btn edit-btn" onclick="editDataTask('sync-001')">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteDataTask('sync-001')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 数据中心相关函数
+function createDataTask(type) {
+    console.log('创建数据任务:', type);
+    showNotification(`创建${type === 'cleaning' ? '清洗' : '同步'}任务功能开发中`, 'info');
+}
+
+function viewDataTask(taskId) {
+    console.log('查看数据任务:', taskId);
+    showNotification(`查看数据任务 ${taskId} 详情`, 'info');
+}
+
+function editDataTask(taskId) {
+    console.log('编辑数据任务:', taskId);
+    showNotification(`编辑数据任务 ${taskId}`, 'info');
+}
+
+function deleteDataTask(taskId) {
+    if (confirm(`确定要删除数据任务 ${taskId} 吗？`)) {
+        console.log('删除数据任务:', taskId);
+        showNotification(`数据任务 ${taskId} 已删除`, 'success');
+    }
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('数据中心页面已加载');
+});
+</script>

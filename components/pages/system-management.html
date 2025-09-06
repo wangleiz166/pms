@@ -1,0 +1,230 @@
+<!-- 系统管理页面 -->
+<div id="system-managementPage" class="page">
+    <div class="page-header">
+        <h1>系统管理</h1>
+    </div>
+
+    <div class="page-content">
+        <!-- 标签页导航 -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchSystemTab('users')">用户管理</button>
+            <button class="tab-btn" onclick="switchSystemTab('roles')">角色权限</button>
+            <button class="tab-btn" onclick="switchSystemTab('settings')">系统设置</button>
+            <button class="tab-btn" onclick="switchSystemTab('logs')">操作日志</button>
+        </div>
+
+        <!-- 用户管理标签页 -->
+        <div id="system-users" class="tab-content active">
+            <div class="tab-header">
+                <h3>用户管理</h3>
+                <button class="btn btn-primary" onclick="showUserForm()">
+                    <span class="btn-icon">+</span>
+                    新增用户
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th>最后登录</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>admin</td>
+                            <td>admin@example.com</td>
+                            <td>系统管理员</td>
+                            <td><span class="status-badge status-active">活跃</span></td>
+                            <td>2025-01-15 10:30</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="editUser('admin')">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteUser('admin')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 角色权限标签页 -->
+        <div id="system-roles" class="tab-content">
+            <div class="tab-header">
+                <h3>角色权限</h3>
+                <button class="btn btn-primary" onclick="showRoleForm()">
+                    <span class="btn-icon">+</span>
+                    新增角色
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>角色名称</th>
+                            <th>描述</th>
+                            <th>权限数量</th>
+                            <th>用户数量</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>系统管理员</td>
+                            <td>拥有所有系统权限</td>
+                            <td>25</td>
+                            <td>1</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="editRole('admin')">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteRole('admin')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 系统设置标签页 -->
+        <div id="system-settings" class="tab-content">
+            <div class="tab-header">
+                <h3>系统设置</h3>
+            </div>
+            
+            <div class="settings-form">
+                <div class="form-group">
+                    <label for="systemName">系统名称</label>
+                    <input type="text" id="systemName" value="项目管理系统" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="systemVersion">系统版本</label>
+                    <input type="text" id="systemVersion" value="v1.0.0" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="timezone">时区设置</label>
+                    <select id="timezone" class="form-select">
+                        <option value="Asia/Shanghai" selected>Asia/Shanghai</option>
+                        <option value="UTC">UTC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="language">语言设置</label>
+                    <select id="language" class="form-select">
+                        <option value="zh-CN" selected>简体中文</option>
+                        <option value="en-US">English</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="saveSystemSettings()">保存设置</button>
+                    <button class="btn btn-secondary" onclick="resetSystemSettings()">重置</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作日志标签页 -->
+        <div id="system-logs" class="tab-content">
+            <div class="tab-header">
+                <h3>操作日志</h3>
+                <div class="log-filters">
+                    <select class="filter-select">
+                        <option value="">全部级别</option>
+                        <option value="info">信息</option>
+                        <option value="warning">警告</option>
+                        <option value="error">错误</option>
+                    </select>
+                    <input type="date" class="filter-input" placeholder="开始日期">
+                    <input type="date" class="filter-input" placeholder="结束日期">
+                    <button class="btn btn-sm btn-primary" onclick="filterLogs()">筛选</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>用户</th>
+                            <th>操作</th>
+                            <th>级别</th>
+                            <th>详情</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-01-15 10:30:25</td>
+                            <td>admin</td>
+                            <td>登录系统</td>
+                            <td><span class="log-level info">信息</span></td>
+                            <td>用户成功登录</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 系统管理相关函数
+function showUserForm() {
+    console.log('显示用户表单');
+    showNotification('用户表单功能开发中', 'info');
+}
+
+function editUser(userId) {
+    console.log('编辑用户:', userId);
+    showNotification(`编辑用户 ${userId}`, 'info');
+}
+
+function deleteUser(userId) {
+    if (confirm(`确定要删除用户 ${userId} 吗？`)) {
+        console.log('删除用户:', userId);
+        showNotification(`用户 ${userId} 已删除`, 'success');
+    }
+}
+
+function showRoleForm() {
+    console.log('显示角色表单');
+    showNotification('角色表单功能开发中', 'info');
+}
+
+function editRole(roleId) {
+    console.log('编辑角色:', roleId);
+    showNotification(`编辑角色 ${roleId}`, 'info');
+}
+
+function deleteRole(roleId) {
+    if (confirm(`确定要删除角色 ${roleId} 吗？`)) {
+        console.log('删除角色:', roleId);
+        showNotification(`角色 ${roleId} 已删除`, 'success');
+    }
+}
+
+function saveSystemSettings() {
+    console.log('保存系统设置');
+    showNotification('系统设置已保存', 'success');
+}
+
+function resetSystemSettings() {
+    console.log('重置系统设置');
+    showNotification('系统设置已重置', 'info');
+}
+
+function filterLogs() {
+    console.log('筛选日志');
+    showNotification('日志筛选功能开发中', 'info');
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('系统管理页面已加载');
+});
+</script>

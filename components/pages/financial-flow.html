@@ -1,0 +1,90 @@
+<!-- 财务管理页面 -->
+<div id="financial-flowPage" class="page">
+    <div class="page-header">
+        <h1>财务管理</h1>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="showFinancialForm()">
+                <span class="btn-icon">+</span>
+                新增财务记录
+            </button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- 财务概览卡片 -->
+        <div class="financial-overview">
+            <div class="overview-card">
+                <div class="card-title">总收入</div>
+                <div class="card-value positive">¥1,234,567</div>
+                <div class="card-change">+12.5%</div>
+            </div>
+            <div class="overview-card">
+                <div class="card-title">总支出</div>
+                <div class="card-value negative">¥987,654</div>
+                <div class="card-change">+8.3%</div>
+            </div>
+            <div class="overview-card">
+                <div class="card-title">净利润</div>
+                <div class="card-value positive">¥246,913</div>
+                <div class="card-change">+25.8%</div>
+            </div>
+            <div class="overview-card">
+                <div class="card-title">现金流</div>
+                <div class="card-value">¥456,789</div>
+                <div class="card-change">+15.2%</div>
+            </div>
+        </div>
+
+        <!-- 财务记录表格 -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>财务记录</h3>
+                <div class="table-actions">
+                    <select class="filter-select">
+                        <option value="">全部类型</option>
+                        <option value="income">收入</option>
+                        <option value="expense">支出</option>
+                    </select>
+                    <button class="btn btn-sm btn-secondary" onclick="refreshFinancialData()">刷新</button>
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>类型</th>
+                        <th>项目</th>
+                        <th>金额</th>
+                        <th>描述</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="financial-list-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// 财务管理相关函数
+function showFinancialForm() {
+    console.log('显示财务表单');
+    showNotification('财务表单功能开发中', 'info');
+}
+
+function refreshFinancialData() {
+    console.log('刷新财务数据');
+    showNotification('财务数据已刷新', 'success');
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('财务管理页面已加载');
+});
+</script>

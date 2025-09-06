@@ -209,6 +209,11 @@
     background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
 }
 
+/* 请假（蓝色） */
+.status-leave {
+    background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+}
+
 /* 状态标签样式 */
 .status-label {
     display: inline-block;
@@ -234,6 +239,17 @@
     background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
     color: white;
 }
+
+.status-label.status-leave {
+    background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+    color: white;
+}
+
+/* 兼容不带前缀的状态类名（例如: pending/approved/rejected/leave） */
+.status-label.pending { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white; }
+.status-label.approved { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+.status-label.rejected { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); color: white; }
+.status-label.leave { background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%); color: white; }
 
 .status-label.unknown {
     background: linear-gradient(135deg, #6c757d 0%, #495057 100%);

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLBot集成验证</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .verification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .verification-card {
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        .verification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .verification-card h3 {
+            color: #667eea;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-indicator {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+            text-align: center;
+        }
+        .status-indicator.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-indicator.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-indicator.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status-indicator.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        .test-results {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-results h4 {
+            color: #333;
+            margin-top: 0;
+        }
+        .log-entry {
+            background: white;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry.success { border-left-color: #28a745; }
+        .log-entry.error { border-left-color: #dc3545; }
+        .log-entry.warning { border-left-color: #ffc107; }
+        .tips {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .tips h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .tips ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .tips li {
+            margin: 8px 0;
+        }
+        .integration-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #0066cc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .integration-info h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .code-block.success {
+            border-left: 4px solid #28a745;
+            background: #f8fff9;
+        }
+        .code-block.error {
+            border-left: 4px solid #dc3545;
+            background: #fff8f8;
+        }
+        .verification-steps {
+            background: #f0f8ff;
+            border: 1px solid #b3d9ff;
+            color: #0066cc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .verification-steps h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        .step-number {
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 SQLBot集成验证</h1>
+        
+        <div class="integration-info">
+            <h4>📋 集成信息</h4>
+            <p><strong>SQLBot服务器:</strong> http://10.10.201.67:8000</p>
+            <p><strong>助手ID:</strong> 7368214901820493824</p>
+            <p><strong>集成方式:</strong> 异步脚本加载</p>
+            <p><strong>集成状态:</strong> <span id="overallStatus" style="font-weight: bold; color: #0066cc;">正在验证...</span></p>
+        </div>
+        
+        <div class="verification-grid">
+            <div class="verification-card">
+                <h3>🔍 脚本标签验证</h3>
+                <div id="scriptTagStatus" class="status-indicator info">正在验证脚本标签...</div>
+                <button onclick="verifyScriptTag()">验证脚本标签</button>
+                <div class="code-block" id="scriptTagCode">
+                    <strong>当前集成代码:</strong><br>
+                    &lt;script async defer id="sqlbot-assistant-float-script-7368214901820493824" src="http://10.10.201.67:8000/assistant.js?id=7368214901820493824"&gt;&lt;/script&gt;
+                </div>
+            </div>
+            
+            <div class="verification-card">
+                <h3>🌐 网络连接验证</h3>
+                <div id="networkStatus" class="status-indicator info">正在验证网络连接...</div>
+                <button onclick="verifyNetworkConnection()">验证网络连接</button>
+                <button onclick="testConnectionSpeed()">测试连接速度</button>
+            </div>
+            
+            <div class="verification-card">
+                <h3>🎯 功能加载验证</h3>
+                <div id="functionStatus" class="status-indicator info">正在验证功能加载...</div>
+                <button onclick="verifyFunctionLoading()">验证功能加载</button>
+                <button onclick="checkSQLBotElements()">检查SQLBot元素</button>
+            </div>
+            
+            <div class="verification-card">
+                <h3>📊 集成完整性验证</h3>
+                <div id="integrationStatus" class="status-indicator info">正在验证集成完整性...</div>
+                <button onclick="verifyIntegration()">验证集成完整性</button>
+                <button onclick="runFullVerification()">运行完整验证</button>
+            </div>
+        </div>
+        
+        <div class="verification-steps">
+            <h4>📋 验证步骤说明</h4>
+            <div class="step">
+                <span class="step-number">步骤1:</span> 验证脚本标签是否正确嵌入
+            </div>
+            <div class="step">
+                <span class="step-number">步骤2:</span> 验证网络连接是否正常
+            </div>
+            <div class="step">
+                <span class="step-number">步骤3:</span> 验证SQLBot功能是否正确加载
+            </div>
+            <div class="step">
+                <span class="step-number">步骤4:</span> 验证整体集成是否完整
+            </div>
+        </div>
+        
+        <div class="test-results">
+            <h4>📝 验证日志</h4>
+            <div id="verificationLogs">
+                <div class="log-entry info">系统初始化完成，开始SQLBot集成验证...</div>
+            </div>
+            <button onclick="clearLogs()">清空日志</button>
+            <button onclick="exportLogs()">导出日志</button>
+        </div>
+        
+        <div class="tips">
+            <h4>💡 SQLBot使用提示</h4>
+            <ul>
+                <li><strong>基础查询:</strong> "本月总工时是多少？"</li>
+                <li><strong>员工查询:</strong> "王磊这个月工作了几天？"</li>
+                <li><strong>项目查询:</strong> "哪个项目工时最多？"</li>
+                <li><strong>统计查询:</strong> "8月份的填报率是多少？"</li>
+                <li><strong>审核查询:</strong> "待审核的报工有多少条？"</li>
+                <li><strong>关联查询:</strong> "张三在哪些项目上工作过？"</li>
+                <li><strong>进度查询:</strong> "企业级智能人事管理系统项目的进度如何？"</li>
+            </ul>
+        </div>
+        
+        <div class="tips">
+            <h4>🔧 故障排除指南</h4>
+            <ul>
+                <li><strong>SQLBot按钮不显示:</strong> 检查网络连接和服务器状态</li>
+                <li><strong>脚本加载失败:</strong> 刷新页面重试，检查防火墙设置</li>
+                <li><strong>功能异常:</strong> 检查浏览器控制台错误信息</li>
+                <li><strong>网络连接问题:</strong> 确保可以访问 http://10.10.201.67:8000</li>
+                <li><strong>集成不完整:</strong> 运行完整验证，查看具体失败项</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SQLBot智能问数应用 - 最新集成代码 -->
+    <script async defer id="sqlbot-assistant-float-script-7368214901820493824" src="http://10.10.201.67:8000/assistant.js?id=7368214901820493824"></script>
+    
+    <script>
+        let verificationLogs = [];
+        let verificationResults = {
+            scriptTag: false,
+            network: false,
+            function: false,
+            integration: false
+        };
+        
+        // 添加验证日志
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            const logsContainer = document.getElementById('verificationLogs');
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+            
+            verificationLogs.push({ timestamp, message, type });
+        }
+        
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('verificationLogs').innerHTML = '';
+            verificationLogs = [];
+            addLog('验证日志已清空', 'info');
+        }
+        
+        // 导出日志
+        function exportLogs() {
+            const logText = verificationLogs.map(log => `[${log.timestamp}] ${log.message}`).join('\n');
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sqlbot-verification-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.log`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // 验证脚本标签
+        function verifyScriptTag() {
+            const statusDiv = document.getElementById('scriptTagStatus');
+            const codeBlock = document.getElementById('scriptTagCode');
+            
+            addLog('开始验证SQLBot脚本标签...', 'info');
+            
+            const script = document.getElementById('sqlbot-assistant-float-script-7368214901820493824');
+            
+            if (!script) {
+                statusDiv.className = 'status-indicator error';
+                statusDiv.textContent = '❌ SQLBot脚本标签未找到';
+                codeBlock.className = 'code-block error';
+                addLog('SQLBot脚本标签未找到', 'error');
+                verificationResults.scriptTag = false;
+                return;
+            }
+            
+            if (script.src === 'http://10.10.201.67:8000/assistant.js?id=7368214901820493824') {
+                statusDiv.className = 'status-indicator success';
+                statusDiv.textContent = '✅ SQLBot脚本标签验证通过';
+                codeBlock.className = 'code-block success';
+                addLog('SQLBot脚本标签验证通过', 'success');
+                verificationResults.scriptTag = true;
+            } else {
+                statusDiv.className = 'status-indicator error';
+                statusDiv.textContent = '❌ SQLBot脚本标签URL不匹配';
+                codeBlock.className = 'code-block error';
+                addLog(`SQLBot脚本标签URL不匹配: ${script.src}`, 'error');
+                verificationResults.scriptTag = false;
+            }
+            
+            updateOverallStatus();
+        }
+        
+        // 验证网络连接
+        function verifyNetworkConnection() {
+            const statusDiv = document.getElementById('networkStatus');
+            statusDiv.className = 'status-indicator info';
+            statusDiv.textContent = '⏳ 正在验证网络连接...';
+            
+            addLog('开始验证网络连接...', 'info');
+            
+            fetch('http://10.10.201.67:8000/assistant.js?id=7368214901820493824', {
+                method: 'HEAD',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                statusDiv.className = 'status-indicator success';
+                statusDiv.textContent = '✅ 网络连接验证通过';
+                addLog('网络连接验证通过', 'success');
+                verificationResults.network = true;
+            })
+            .catch((error) => {
+                statusDiv.className = 'status-indicator error';
+                statusDiv.textContent = `❌ 网络连接验证失败: ${error.message}`;
+                addLog(`网络连接验证失败: ${error.message}`, 'error');
+                verificationResults.network = false;
+            })
+            .finally(() => {
+                updateOverallStatus();
+            });
+        }
+        
+        // 测试连接速度
+        function testConnectionSpeed() {
+            addLog('开始测试SQLBot服务器连接速度...', 'info');
+            
+            const startTime = Date.now();
+            fetch('http://10.10.201.67:8000/assistant.js?id=7368214901820493824', {
+                method: 'HEAD',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                const responseTime = Date.now() - startTime;
+                addLog(`连接速度测试成功，响应时间: ${responseTime}ms`, 'success');
+                
+                if (responseTime < 100) {
+                    addLog('连接速度: 极快', 'success');
+                } else if (responseTime < 300) {
+                    addLog('连接速度: 快', 'success');
+                } else if (responseTime < 1000) {
+                    addLog('连接速度: 正常', 'info');
+                } else {
+                    addLog('连接速度: 较慢', 'warning');
+                }
+            })
+            .catch((error) => {
+                addLog(`连接速度测试失败: ${error.message}`, 'error');
+            });
+        }
+        
+        // 验证功能加载
+        function verifyFunctionLoading() {
+            const statusDiv = document.getElementById('functionStatus');
+            addLog('开始验证SQLBot功能加载...', 'info');
+            
+            // 检查脚本加载状态
+            const script = document.getElementById('sqlbot-assistant-float-script-7368214901820493824');
+            if (script && (script.readyState === 'complete' || script.readyState === 'loaded')) {
+                statusDiv.className = 'status-indicator success';
+                statusDiv.textContent = '✅ SQLBot脚本已加载完成';
+                addLog('SQLBot脚本已加载完成', 'success');
+                verificationResults.function = true;
+            } else {
+                statusDiv.className = 'status-indicator warning';
+                statusDiv.textContent = '⚠️ SQLBot脚本可能还在加载中';
+                addLog('SQLBot脚本可能还在加载中', 'warning');
+                verificationResults.function = false;
+            }
+            
+            updateOverallStatus();
+        }
+        
+        // 检查SQLBot元素
+        function checkSQLBotElements() {
+            addLog('开始检查SQLBot相关元素...', 'info');
+            
+            const sqlbotElements = document.querySelectorAll('[class*="sqlbot"], [id*="sqlbot"]');
+            const assistantElements = document.querySelectorAll('[class*="assistant"], [id*="assistant"]');
+            
+            const totalElements = sqlbotElements.length + assistantElements.length;
+            
+            if (totalElements > 0) {
+                addLog(`发现 ${totalElements} 个SQLBot相关元素`, 'success');
+                
+                sqlbotElements.forEach((el, index) => {
+                    addLog(`SQLBot元素 ${index + 1}: ${el.tagName}.${el.className}`, 'info');
+                });
+                
+                assistantElements.forEach((el, index) => {
+                    addLog(`Assistant元素 ${index + 1}: ${el.tagName}.${el.className}`, 'info');
+                });
+            } else {
+                addLog('未发现SQLBot相关元素，可能还未完全加载', 'warning');
+            }
+        }
+        
+        // 验证集成完整性
+        function verifyIntegration() {
+            const statusDiv = document.getElementById('integrationStatus');
+            addLog('开始验证SQLBot集成完整性...', 'info');
+            
+            let score = 0;
+            const totalChecks = 4;
+            
+            // 检查各项验证结果
+            if (verificationResults.scriptTag) score++;
+            if (verificationResults.network) score++;
+            if (verificationResults.function) score++;
+            
+            // 检查元素加载
+            const sqlbotElements = document.querySelectorAll('[class*="sqlbot"], [id*="sqlbot"]');
+            if (sqlbotElements.length > 0) {
+                score++;
+                verificationResults.integration = true;
+            } else {
+                verificationResults.integration = false;
+            }
+            
+            const percentage = Math.round((score / totalChecks) * 100);
+            
+            if (percentage >= 80) {
+                statusDiv.className = 'status-indicator success';
+                statusDiv.textContent = `✅ 集成完整性验证通过: ${score}/${totalChecks} (${percentage}%)`;
+                addLog(`集成完整性验证通过: ${score}/${totalChecks} (${percentage}%)`, 'success');
+            } else if (percentage >= 60) {
+                statusDiv.className = 'status-indicator warning';
+                statusDiv.textContent = `⚠️ 集成完整性验证部分通过: ${score}/${totalChecks} (${percentage}%)`;
+                addLog(`集成完整性验证部分通过: ${score}/${totalChecks} (${percentage}%)`, 'warning');
+            } else {
+                statusDiv.className = 'status-indicator error';
+                statusDiv.textContent = `❌ 集成完整性验证失败: ${score}/${totalChecks} (${percentage}%)`;
+                addLog(`集成完整性验证失败: ${score}/${totalChecks} (${percentage}%)`, 'error');
+            }
+            
+            updateOverallStatus();
+        }
+        
+        // 更新整体状态
+        function updateOverallStatus() {
+            const overallStatus = document.getElementById('overallStatus');
+            const passedChecks = Object.values(verificationResults).filter(Boolean).length;
+            const totalChecks = Object.keys(verificationResults).length;
+            const percentage = Math.round((passedChecks / totalChecks) * 100);
+            
+            if (percentage >= 80) {
+                overallStatus.textContent = `✅ 集成成功 (${passedChecks}/${totalChecks})`;
+                overallStatus.style.color = '#28a745';
+            } else if (percentage >= 60) {
+                overallStatus.textContent = `⚠️ 集成部分成功 (${passedChecks}/${totalChecks})`;
+                overallStatus.style.color = '#ffc107';
+            } else {
+                overallStatus.textContent = `❌ 集成失败 (${passedChecks}/${totalChecks})`;
+                overallStatus.style.color = '#dc3545';
+            }
+        }
+        
+        // 运行完整验证
+        function runFullVerification() {
+            addLog('🚀 开始运行完整SQLBot集成验证...', 'info');
+            
+            // 清空之前的日志
+            clearLogs();
+            
+            // 按顺序运行所有验证
+            setTimeout(() => verifyScriptTag(), 500);
+            setTimeout(() => verifyNetworkConnection(), 1000);
+            setTimeout(() => verifyFunctionLoading(), 1500);
+            setTimeout(() => verifyIntegration(), 2000);
+            
+            addLog('完整验证已启动，请等待所有验证完成', 'info');
+        }
+        
+        // 页面加载完成后自动验证
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('页面加载完成，开始自动验证', 'info');
+            
+            setTimeout(() => verifyScriptTag(), 1000);
+            setTimeout(() => verifyNetworkConnection(), 2000);
+            setTimeout(() => verifyFunctionLoading(), 3000);
+            setTimeout(() => verifyIntegration(), 4000);
+        });
+        
+        // 监听SQLBot加载事件
+        window.addEventListener('load', function() {
+            addLog('页面完全加载完成', 'info');
+            
+            setTimeout(() => {
+                addLog('延迟验证SQLBot最终状态', 'info');
+                verifyFunctionLoading();
+                verifyIntegration();
+            }, 3000);
+        });
+        
+        // 定期检查状态
+        setInterval(() => {
+            if (verificationLogs.length > 0 && verificationLogs[verificationLogs.length - 1].type === 'warning') {
+                addLog('定期状态检查：重新评估警告项', 'info');
+                verifyFunctionLoading();
+                verifyIntegration();
+            }
+        }, 15000); // 每15秒检查一次
+    </script>
+</body>
+</html>

@@ -5,52 +5,113 @@ let currentPage = 'timesheet';
 let currentUser = '王磊';
 
 // 页面切换函数
-function switchPage(pageId) {
-    console.log('切换到页面:', pageId);
-    
+async function switchPage(pageId) {
+    console.log('Switching to page:', pageId);
+
     // 隐藏所有页面
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-        page.style.display = 'none';
+    document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
+        page.style.display = 'none';
     });
-    
-    // 显示目标页面
-    const targetPage = document.getElementById(pageId + 'Page');
-    if (targetPage) {
-        targetPage.style.display = 'block';
-        targetPage.classList.add('active');
-        currentPage = pageId;
-        console.log('页面切换成功:', pageId);
-        
-        // 如果切换到报表分析页面，自动加载数据
-        if (pageId === 'report-analysis') {
-            setTimeout(() => {
+
+    // 定义每个页面的初始化函数
+    const pageInitializers = {
+        'timesheet': () => {
+            if (typeof initializeTimesheetPage === 'function') {
+                initializeTimesheetPage();
+            } else {
+                console.error('initializeTimesheetPage function not found');
+            }
+        },
+        'report-analysis': () => {
+            if (typeof updateTableData === 'function') {
                 updateTableData();
-            }, 100);
+            }
+        },
+        'approval-center': () => {
+            if (typeof fetchTimesheetApprovalData === 'function') {
+                fetchTimesheetApprovalData();
+            }
+        },
+        'project-management': () => {
+            console.log('Project management page initializer called');
+            if (typeof loadProjectList === 'function') {
+                console.log('Calling loadProjectList function');
+                loadProjectList();
+            } else {
+                console.error('loadProjectList function not found');
+            }
+        },
+        'staff-management': () => {
+            console.log('Staff management page initializer called');
+            initializeStaffManagementPage();
+        },
+        'team-management': () => {
+            console.log('Team management page loaded');
+            // 团队管理页面初始化逻辑
+        },
+        'financial-management': () => {
+            console.log('Financial management page loaded');
+            // 财务管理页面初始化逻辑
+        },
+        'business-management': () => {
+            console.log('Business management page loaded');
+            // 商务管理页面初始化逻辑
+        },
+        'task-scheduler': () => {
+            console.log('Task scheduler page loaded');
+            // 计划任务页面初始化逻辑
+        },
+        'system-management': () => {
+            console.log('System management page loaded');
+            // 系统管理页面初始化逻辑
+        }
+        // 其他页面可以继续在这里添加
+    };
+
+    const initializer = pageInitializers[pageId];
+    console.log(`[switchPage] Initializer for '${pageId}':`, initializer ? 'Found' : 'No initializer found');
+
+    if (window.componentLoader && typeof window.componentLoader.loadPage === 'function') {
+        try {
+            console.log(`[switchPage] Calling componentLoader.loadPage for '${pageId}'...`);
+            await window.componentLoader.loadPage(pageId, '#pageContainer', 'replace', initializer);
+            currentPage = pageId;
+            console.log(`[switchPage] Successfully switched and initialized page '${pageId}'.`);
+        } catch (error) {
+            console.error(`[switchPage] Error loading page '${pageId}':`, error);
+            showNotification(`加载页面失败: ${error.message}`, 'error');
         }
     } else {
-        console.error('页面不存在:', pageId + 'Page');
+        console.error('[switchPage] ComponentLoader or loadPage function is not available.');
+        showNotification('页面加载器不可用', 'error');
     }
 }
 
 // 审核中心标签页切换
-function switchApprovalTab(tabName) {
+function switchApprovalTab(tabName, event) {
     const tabBtns = document.querySelectorAll('#approval-centerPage .tab-btn');
     const tabContents = document.querySelectorAll('#approval-centerPage .tab-content');
-    
+
     tabBtns.forEach(btn => btn.classList.remove('active'));
     tabContents.forEach(content => content.classList.remove('active'));
-    
+
     if (event && event.currentTarget) {
         event.currentTarget.classList.add('active');
     }
-    const targetContent = document.getElementById(`${tabName}-approval`);
+    const targetContent = document.getElementById(`${tabName}Tab`);
     if (targetContent) {
         targetContent.classList.add('active');
     }
-    
+
     console.log('审核中心切换到:', tabName);
+
+    // 切换标签页时加载对应数据
+    if (tabName === 'timesheet') {
+        fetchTimesheetApprovalData();
+    } else if (tabName === 'budget') {
+        fetchBudgetApprovalData();
+    }
 }
 
 // 系统管理标签页切换
@@ -208,18 +269,332 @@ function viewTimesheetDetail(timesheetId) {
     showNotification(`查看报工详情 ${timesheetId}`, 'info');
 }
 
-function approveTimesheet(timesheetId) {
-    if (confirm('确定要通过这条报工记录吗？')) {
-        console.log('通过报工:', timesheetId);
+async function approveTimesheet(timesheetId) {
+    try {
+        const response = await fetch(`http://127.0.0.1:5001/api/reports/${timesheetId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
         showNotification(`报工记录 ${timesheetId} 已通过`, 'success');
+            // 刷新报工审核列表
+            refreshTimesheetApprovalList();
+        } else {
+            throw new Error('审核操作失败');
+        }
+    } catch (error) {
+        console.error('审核报工失败:', error);
+        showNotification('审核操作失败', 'error');
     }
 }
 
-function rejectTimesheet(timesheetId) {
+async function rejectTimesheet(timesheetId) {
+    // 第一次确认
     if (confirm('确定要驳回这条报工记录吗？')) {
-        console.log('驳回报工:', timesheetId);
+        // 第二次确认
+        if (confirm('请再次确认：驳回后该记录将无法恢复，确定要驳回吗？')) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5001/api/reports/${timesheetId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
         showNotification(`报工记录 ${timesheetId} 已驳回`, 'warning');
+                    // 刷新报工审核列表
+                    refreshTimesheetApprovalList();
+                } else {
+                    throw new Error('审核操作失败');
+                }
+            } catch (error) {
+                console.error('驳回报工失败:', error);
+                showNotification('审核操作失败', 'error');
+            }
+        }
     }
+}
+
+// 项目预算审核函数
+function viewBudgetDetail(budgetId) {
+    console.log('查看预算详情:', budgetId);
+    showNotification(`查看预算详情 ${budgetId}`, 'info');
+}
+
+async function approveBudget(budgetId) {
+    if (confirm('确定要通过这个项目预算吗？')) {
+        try {
+            const response = await fetch(`http://127.0.0.1:5001/api/budget/approve/${budgetId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                showNotification(`项目预算 ${budgetId} 已通过`, 'success');
+                // 刷新预算审核列表
+                refreshBudgetApprovalList();
+            } else {
+                throw new Error('审核操作失败');
+            }
+        } catch (error) {
+            console.error('审核预算失败:', error);
+            showNotification('审核操作失败', 'error');
+        }
+    }
+}
+
+async function rejectBudget(budgetId) {
+    // 第一次确认
+    if (confirm('确定要驳回这个项目预算吗？')) {
+        // 第二次确认
+        if (confirm('请再次确认：驳回后该预算将无法恢复，确定要驳回吗？')) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5001/api/budget/reject/${budgetId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    showNotification(`项目预算 ${budgetId} 已驳回`, 'warning');
+                    // 刷新预算审核列表
+                    refreshBudgetApprovalList();
+                } else {
+                    throw new Error('审核操作失败');
+                }
+            } catch (error) {
+                console.error('驳回预算失败:', error);
+                showNotification('审核操作失败', 'error');
+            }
+        }
+    }
+}
+
+// 刷新审核列表的函数
+function refreshTimesheetApprovalList() {
+    console.log('刷新报工审核列表');
+    // 调用接口获取报工审核数据
+    fetchTimesheetApprovalData(currentTimesheetPage);
+}
+
+// 当前报工审核页面
+let currentTimesheetPage = 1;
+
+// 分页相关函数
+function changeTimesheetPage(direction) {
+    if (direction === -1 && currentTimesheetPage > 1) {
+        currentTimesheetPage--;
+    } else if (direction === 1) {
+        currentTimesheetPage++;
+    } else if (typeof direction === 'number' && direction > 0) {
+        currentTimesheetPage = direction;
+    }
+    
+    fetchTimesheetApprovalData(currentTimesheetPage);
+}
+
+// 更新分页控件
+function updateTimesheetApprovalPagination(pagination) {
+    const infoElement = document.getElementById('timesheet-pagination-info');
+    const pagesElement = document.getElementById('timesheet-pagination-pages');
+    const prevBtn = document.getElementById('timesheet-prev-btn');
+    const nextBtn = document.getElementById('timesheet-next-btn');
+    
+    if (!pagination) return;
+    
+    // 更新分页信息
+    if (infoElement) {
+        const start = (pagination.current_page - 1) * pagination.per_page + 1;
+        const end = Math.min(pagination.current_page * pagination.per_page, pagination.total_count);
+        infoElement.textContent = `显示第 ${start}-${end} 条，共 ${pagination.total_count} 条记录`;
+    }
+    
+    // 更新页码按钮
+    if (pagesElement) {
+        pagesElement.innerHTML = '';
+        const totalPages = pagination.total_pages;
+        const currentPage = pagination.current_page;
+        
+        // 显示页码逻辑
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        
+        // 如果总页数较少，显示所有页码
+        if (totalPages <= 5) {
+            startPage = 1;
+            endPage = totalPages;
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => changeTimesheetPage(i);
+            pagesElement.appendChild(pageBtn);
+        }
+    }
+    
+    // 更新上一页/下一页按钮状态
+    if (prevBtn) {
+        prevBtn.disabled = pagination.current_page <= 1;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = pagination.current_page >= pagination.total_pages;
+    }
+}
+
+function refreshBudgetApprovalList() {
+    console.log('刷新预算审核列表');
+    // 调用接口获取预算审核数据
+    fetchBudgetApprovalData();
+}
+
+// 获取报工审核数据的函数
+async function fetchTimesheetApprovalData(page = 1) {
+    console.log('fetchTimesheetApprovalData 被调用，页码:', page);
+    
+    const tbody = document.getElementById('timesheet-approval-tbody');
+    console.log('找到的 tbody 元素:', tbody);
+    
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
+    }
+    
+    try {
+        const url = `http://127.0.0.1:5001/api/reports/pending?page=${page}&per_page=10`;
+        console.log('请求URL:', url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        console.log('响应状态:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('接收到的数据:', data);
+            updateTimesheetApprovalTable(data.reports);
+            updateTimesheetApprovalPagination(data.pagination);
+            showNotification('报工审核列表已刷新', 'success');
+        } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error('获取报工审核数据失败:', error);
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
+        }
+        showNotification('获取报工审核数据失败', 'error');
+    }
+}
+
+// 获取预算审核数据的函数
+async function fetchBudgetApprovalData() {
+    const tbody = document.getElementById('budget-approval-tbody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
+    }
+    
+    try {
+        const response = await fetch('http://127.0.0.1:5001/api/budget/approval', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateBudgetApprovalTable(data);
+            showNotification('预算审核列表已刷新', 'success');
+        } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error('获取预算审核数据失败:', error);
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
+        }
+        showNotification('获取预算审核数据失败', 'error');
+    }
+}
+
+// 更新报工审核表格
+function updateTimesheetApprovalTable(data) {
+    const tbody = document.getElementById('timesheet-approval-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">暂无待审核的报工记录</td></tr>';
+        return;
+    }
+    
+    data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.employee_name}</td>
+            <td>${item.project_name}</td>
+            <td>${item.report_date}</td>
+            <td>${item.hours_spent}</td>
+            <td>${item.task_description}</td>
+            <td><span class="status-badge status-pending">待审核</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="approveTimesheet('${item.id}')">通过</button>
+                    <button class="action-btn delete-btn" onclick="rejectTimesheet('${item.id}')">驳回</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// 更新预算审核表格
+function updateBudgetApprovalTable(data) {
+    const tbody = document.getElementById('budget-approval-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">暂无待审核的预算记录</td></tr>';
+        return;
+    }
+    
+    data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.project_name}</td>
+            <td>${item.manager_name || item.manager}</td>
+            <td><span class="budget-type ${item.type}">${item.type === 'initial' ? '初始预算' : item.type === 'adjustment' ? '预算调整' : '追加预算'}</span></td>
+            <td>￥${item.amount.toLocaleString()}</td>
+            <td>${item.submit_date}</td>
+            <td><span>${item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已通过' : '已驳回'}</span></td>
+            <td>
+                <div class="action-buttons">
+                    ${item.status === 'pending' ? `
+                        <button class="action-btn edit-btn" onclick="approveBudget('${item.id}')">通过</button>
+                        <button class="action-btn delete-btn" onclick="rejectBudget('${item.id}')">驳回</button>
+                    ` : `
+                        <button class="action-btn view-btn" onclick="viewBudgetDetail('${item.id}')">查看</button>
+                    `}
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 // 人员管理相关函数
@@ -285,9 +660,9 @@ function initReportTimeFilter() {
     console.log('报表分析时间筛选器初始化完成');
 }
 
-// 页面加载完成后的初始化
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('页面加载完成，初始化...');
+// 初始化主应用
+function initializeMainApp() {
+    console.log('初始化主应用...');
     
     // 默认显示工时管理页面
     switchPage('timesheet');
@@ -305,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化报表分析时间筛选器
     initReportTimeFilter();
     
-    console.log('初始化完成');
+    console.log('主应用初始化完成');
     
     // 加载工时数据
     if (typeof fetchAndDisplayReports === 'function') {
@@ -324,13 +699,54 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof loadMonthlyStats === 'function') {
         loadMonthlyStats();
     }
-});
+}
+
+
+// 导出函数供HTML调用
+// 显示登录页面
+function showLogin() {
+    // 隐藏主应用
+    document.getElementById('mainApp').style.display = 'none';
+
+    // 加载并显示登录页面
+    window.componentLoader.loadPage('login', '#pageContainer', 'replace')
+        .then(() => {
+            const loginPage = document.getElementById('loginPage');
+            if (loginPage) {
+                loginPage.style.display = 'flex';
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load login page:', error);
+            if (typeof showErrorState === 'function') {
+                showErrorState('登录页面加载失败');
+            }
+        });
+}
+
+// 登录成功后的处理
+function onLoginSuccess() {
+    // 隐藏登录页面
+    const loginPage = document.getElementById('loginPage');
+    if (loginPage) {
+        loginPage.style.display = 'none';
+    }
+
+    // 显示主应用
+    document.getElementById('mainApp').style.display = 'block';
+
+    // 切换到默认页面
+    switchPage('timesheet');
+}
 
 // 导出函数供HTML调用
 window.switchPage = switchPage;
 window.switchApprovalTab = switchApprovalTab;
 window.switchSystemTab = switchSystemTab;
+window.initializeMainApp = initializeMainApp;
 window.switchTimeDimension = switchTimeDimension;
+window.showLogin = showLogin;
+window.onLoginSuccess = onLoginSuccess;
 
 // 应用时间筛选
 function applyTimeFilter() {
@@ -429,7 +845,7 @@ function updateTableData() {
 // 加载报表分析数据
 async function loadReportAnalysisData(timeRange) {
     try {
-        const response = await fetch(`/api/reports/analysis?time_range=${timeRange}&page=1&per_page=10`);
+        const response = await fetch(`http://127.0.0.1:5001/api/reports/analysis?time_range=${timeRange}&page=1&per_page=10`);
         if (response.ok) {
             const data = await response.json();
             updateKPICards(data.kpi);
@@ -450,10 +866,10 @@ async function loadChartData() {
     try {
         // 并行加载所有图表数据
         const [hoursTrend, projectProgress, teamEfficiency, financialAnalysis] = await Promise.all([
-            fetch('/api/charts/hours-trend').then(r => r.json()),
-            fetch('/api/charts/project-progress').then(r => r.json()),
-            fetch('/api/charts/team-efficiency').then(r => r.json()),
-            fetch('/api/charts/financial-analysis').then(r => r.json())
+            fetch('http://127.0.0.1:5001/api/charts/hours-trend').then(r => r.json()),
+            fetch('http://127.0.0.1:5001/api/charts/project-progress').then(r => r.json()),
+            fetch('http://127.0.0.1:5001/api/charts/team-efficiency').then(r => r.json()),
+            fetch('http://127.0.0.1:5001/api/charts/financial-analysis').then(r => r.json())
         ]);
         
         // 更新图表（这里可以集成图表库如Chart.js或ECharts）
@@ -779,6 +1195,18 @@ window.deleteDataTask = deleteDataTask;
 window.viewTimesheetDetail = viewTimesheetDetail;
 window.approveTimesheet = approveTimesheet;
 window.rejectTimesheet = rejectTimesheet;
+window.viewBudgetDetail = viewBudgetDetail;
+window.approveBudget = approveBudget;
+window.rejectBudget = rejectBudget;
+window.refreshTimesheetApprovalList = refreshTimesheetApprovalList;
+window.refreshBudgetApprovalList = refreshBudgetApprovalList;
+window.changeTimesheetPage = changeTimesheetPage;
+window.fetchTimesheetApprovalData = fetchTimesheetApprovalData;
+window.loadProjectList = loadProjectList;
+window.showProjectForm = showProjectForm;
+window.deleteProject = deleteProject;
+window.openReportAnalysis = openReportAnalysis;
+
 window.editEmployee = editEmployee;
 window.deleteEmployee = deleteEmployee;
 window.showNotification = showNotification;
@@ -790,4 +1218,279 @@ window.updateKPICards = updateKPICards;
 window.updateAnalysisTable = updateAnalysisTable;
 window.updatePagination = updatePagination;
 window.updateChartPlaceholders = updateChartPlaceholders;
+
+// 项目管理相关函数
+async function loadProjectList() {
+    console.log('开始加载项目列表...');
+    
+    const tbody = document.getElementById('project-list-tbody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
+    }
+    
+    try {
+        const response = await fetch('http://127.0.0.1:5001/api/projects/detailed', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        console.log('项目列表API响应状态:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('获取到的项目数据:', data);
+            
+            // 兼容两种返回格式：数组 或 { projects, total, page, pages }
+            const list = Array.isArray(data) ? data : (data.projects || []);
+            updateProjectListTable(list);
+            showNotification('项目列表已刷新', 'success');
+        } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error('获取项目列表失败:', error);
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
+        }
+        showNotification('获取项目列表失败', 'error');
+    }
+}
+
+function updateProjectListTable(projects) {
+    console.log('updateProjectListTable called with:', projects);
+    console.log('projects type:', typeof projects);
+    console.log('projects isArray:', Array.isArray(projects));
+    
+    const tbody = document.getElementById('project-list-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (!projects || !Array.isArray(projects) || projects.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">暂无项目数据</td></tr>';
+        return;
+    }
+    
+    projects.forEach(project => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td>${project.project_code || '-'}</td>
+            <td>${project.project_name || '-'}</td>
+            <td>交付型项目</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="editProject('${project.id}')">编辑</button>
+                    <button class="action-btn delete-btn" onclick="deleteProject('${project.id}')">删除</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// 获取项目状态信息
+function getProjectStatusInfo(status) {
+    const statusMap = {
+        'planning': { text: '规划中', class: 'status-planning' },
+        'active': { text: '进行中', class: 'status-active' },
+        'completed': { text: '已完成', class: 'status-completed' },
+        'paused': { text: '已暂停', class: 'status-paused' }
+    };
+    
+    return statusMap[status] || { text: '未知', class: 'status-unknown' };
+}
+
+// 更新项目统计
+function updateProjectStats(projects) {
+    if (!projects) return;
+    
+    const total = projects.length;
+    const active = projects.filter(p => p.status === 'active').length;
+    const completed = projects.filter(p => p.status === 'completed').length;
+    const avgProgress = projects.length > 0 ? 
+        Math.round(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length) : 0;
+    
+    // 更新统计卡片
+    const totalElement = document.getElementById('totalProjects');
+    const activeElement = document.getElementById('activeProjects');
+    const completedElement = document.getElementById('completedProjects');
+    const avgProgressElement = document.getElementById('avgProgress');
+    
+    if (totalElement) totalElement.textContent = total;
+    if (activeElement) activeElement.textContent = active;
+    if (completedElement) completedElement.textContent = completed;
+    if (avgProgressElement) avgProgressElement.textContent = avgProgress + '%';
+}
+
+function showProjectForm(projectId = null) {
+    console.log('显示项目表单:', projectId);
+    showNotification('项目表单功能开发中', 'info');
+}
+
+function editProject(projectId) {
+    console.log('编辑项目:', projectId);
+    showNotification('编辑项目功能开发中', 'info');
+}
+
+function deleteProject(projectId) {
+    if (confirm('确定要删除这个项目吗？删除后无法恢复！')) {
+        console.log('删除项目:', projectId);
+        showNotification('删除项目功能开发中', 'info');
+    }
+}
+
+function searchProjects() {
+    const searchTerm = document.getElementById('projectSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#project-list-tbody tr');
+    
+    rows.forEach(row => {
+        const projectName = row.cells[1]?.textContent.toLowerCase() || '';
+        const projectCode = row.cells[0]?.textContent.toLowerCase() || '';
+        
+        if (projectName.includes(searchTerm) || projectCode.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// 报表分析跳转函数
+function openReportAnalysis() {
+    console.log('打开报表分析外部链接...');
+    window.open('http://10.10.201.67:8000/#/dashboard-preview?resourceId=5c4da1b2587f4ffbbcf645be9f6984ca', '_blank');
+}
+
+// 报表管理跳转函数
+function openReportManagement() {
+    console.log('打开报表管理外部链接...');
+    window.open('http://10.10.201.76:8100/#/workbranch/index', '_blank');
+}
+
+// 项目大屏跳转函数
+function openProjectDashboard() {
+    console.log('打开项目大屏外部链接...');
+    window.open('http://10.10.201.76:8100/#/de-link/PLgPsH9r', '_blank');
+}
+
+// 智能问数跳转函数
+function openAIAssistant() {
+    console.log('打开智能问数外部链接...');
+    window.open('http://10.10.201.67:8000/#/chat/index', '_blank');
+}
+
+// 人员管理页面初始化函数
+async function initializeStaffManagementPage() {
+    console.log('Staff management page initializer called');
+    await loadEmployeeList();
+    await loadDepartments();
+}
+
+// 加载员工列表
+async function loadEmployeeList(page = 1) {
+    console.log('Loading employee list for page:', page);
+    
+    try {
+        const params = new URLSearchParams({
+            page: page,
+            per_page: 10,
+            search: ''
+        });
+        
+        const response = await fetch(`http://127.0.0.1:5001/api/employees?${params}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Received employee data:', data);
+        
+        updateEmployeeListTable(data.employees);
+        updateEmployeePagination(data.total, data.page, data.pages);
+        
+    } catch (error) {
+        console.error('Error loading employee list:', error);
+        showNotification('加载员工列表失败: ' + error.message, 'error');
+    }
+}
+
+// 更新员工列表表格
+function updateEmployeeListTable(employees) {
+    const tbody = document.getElementById('employee-list-tbody');
+    if (!tbody) return;
+    
+    if (employees.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">没有找到员工</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = employees.map(employee => `
+        <tr>
+            <td>${employee.id}</td>
+            <td>${employee.name || 'N/A'}</td>
+            <td>${employee.department || '未分配部门'}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="editEmployee(${employee.id})">编辑</button>
+                    <button class="action-btn delete-btn" onclick="deleteEmployee(${employee.id})">删除</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// 更新分页信息
+function updateEmployeePagination(total, page, pages) {
+    const start = (page - 1) * 10 + 1;
+    const end = Math.min(page * 10, total);
+    
+    const paginationInfo = document.getElementById('employee-pagination-info');
+    if (paginationInfo) {
+        paginationInfo.textContent = `显示第 ${start}-${end} 条，共 ${total} 条记录`;
+    }
+    
+    // 更新分页按钮状态
+    const prevBtn = document.getElementById('employee-prev-btn');
+    const nextBtn = document.getElementById('employee-next-btn');
+    
+    if (prevBtn) {
+        prevBtn.disabled = page <= 1;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = page >= pages;
+    }
+}
+
+// 加载部门列表
+async function loadDepartments() {
+    try {
+        const response = await fetch('http://127.0.0.1:5001/api/departments');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const departments = await response.json();
+        console.log('Received departments:', departments);
+        
+    } catch (error) {
+        console.error('Error loading departments:', error);
+        showNotification('加载部门列表失败: ' + error.message, 'error');
+    }
+}
+
+// 编辑员工
+function editEmployee(employeeId) {
+    showNotification('编辑功能暂未开放', 'info');
+}
+
+// 删除员工
+function deleteEmployee(employeeId) {
+    showNotification('删除功能暂未开放', 'info');
+}
+
+
 

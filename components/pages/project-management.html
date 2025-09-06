@@ -1,0 +1,89 @@
+<!-- 项目管理页面 -->
+<div id="project-managementPage" class="page">
+    <div class="page-header">
+        <h1>项目管理</h1>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="showProjectForm()">
+                <span class="btn-icon">+</span>
+                新增项目
+            </button>
+            <button class="btn btn-secondary" onclick="loadProjectList()">
+                <span class="btn-icon">🔄</span>
+                刷新
+            </button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- 项目列表 -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>项目列表</h3>
+                <div class="table-actions">
+                    <input type="text" id="projectSearch" placeholder="搜索项目名称..." class="search-input" onkeyup="searchProjects()">
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>项目编码</th>
+                        <th>项目名称</th>
+                        <th>项目类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="project-list-tbody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页控件 -->
+        <div class="pagination">
+            <div class="pagination-info" id="project-pagination-info">显示第 1-10 条，共 0 条记录</div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="project-prev-btn" onclick="changeProjectPage(-1)" disabled>上一页</button>
+                <div id="project-pagination-pages"></div>
+                <button class="pagination-btn" id="project-next-btn" onclick="changeProjectPage(1)">下一页</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 项目表单模态框 -->
+<div id="projectModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>项目信息</h3>
+            <span class="close" onclick="closeProjectModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="projectName">项目名称</label>
+                    <input type="text" id="projectName" name="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectCode">项目编码</label>
+                    <input type="text" id="projectCode" name="projectCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectStatus">项目状态</label>
+                    <select id="projectStatus" name="projectStatus" required>
+                        <option value="planning">规划中</option>
+                        <option value="active">进行中</option>
+                        <option value="completed">已完成</option>
+                        <option value="paused">已暂停</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeProjectModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveProject()">保存</button>
+        </div>
+    </div>
+</div>

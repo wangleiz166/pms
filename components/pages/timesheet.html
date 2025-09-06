@@ -1,0 +1,216 @@
+<!-- 工时填写页面 -->
+<div id="timesheetPage" class="page active">
+    <div class="timesheet-layout">
+        <!-- 左侧统计栏 -->
+        <div class="stats-sidebar">
+            <h3>工时统计</h3>
+            
+            <div class="month-selector">
+                <button class="month-nav" onclick="changeMonth(-1)">‹</button>
+                <span class="current-month">2025年8月</span>
+                <button class="month-nav" onclick="changeMonth(1)">›</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <h4>本月工时</h4>
+                    <div class="stats-number">-- <span class="stats-unit">小时</span></div>
+                    <div class="stats-trend">加载中...</div>
+                </div>
+                
+                <div class="stats-card">
+                    <h4>本月人天</h4>
+                    <div class="stats-number">-- <span class="stats-unit">天</span></div>
+                    <div class="stats-trend">加载中...</div>
+                </div>
+                
+                <div class="stats-card">
+                    <h4>参与项目</h4>
+                    <div class="stats-number">-- <span class="stats-unit">个</span></div>
+                    <div class="stats-trend">加载中...</div>
+                </div>
+                
+                <div class="stats-card">
+                    <h4>填报率</h4>
+                    <div class="stats-number">--% <span class="stats-unit">完成度</span></div>
+                    <div class="stats-trend">加载中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧日历 -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2 class="calendar-title">2025年8月工时填报</h2>
+                <button class="btn" onclick="openTimesheetModal()">➕ 新增工时</button>
+            </div>
+            
+            <table class="calendar">
+                <thead>
+                    <tr>
+                        <th>日</th>
+                        <th>一</th>
+                        <th>二</th>
+                        <th>三</th>
+                        <th>四</th>
+                        <th>五</th>
+                        <th>六</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td onclick="openTimesheetModal('2025-08-01')">
+                            <div class="calendar-date">1</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-02')">
+                            <div class="calendar-date">2</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-03')">
+                            <div class="calendar-date">3</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-04')">
+                            <div class="calendar-date">4</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td class="today" onclick="openTimesheetModal('2025-08-05')">
+                            <div class="calendar-date">5</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-06')">
+                            <div class="calendar-date">6</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-07')">
+                            <div class="calendar-date">7</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td onclick="openTimesheetModal('2025-08-08')">
+                            <div class="calendar-date">8</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-09')">
+                            <div class="calendar-date">9</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-10')">
+                            <div class="calendar-date">10</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-11')">
+                            <div class="calendar-date">11</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-12')">
+                            <div class="calendar-date">12</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-13')">
+                            <div class="calendar-date">13</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-14')">
+                            <div class="calendar-date">14</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td onclick="openTimesheetModal('2025-08-15')">
+                            <div class="calendar-date">15</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-16')">
+                            <div class="calendar-date">16</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-17')">
+                            <div class="calendar-date">17</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-18')">
+                            <div class="calendar-date">18</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-19')">
+                            <div class="calendar-date">19</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-20')">
+                            <div class="calendar-date">20</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-21')">
+                            <div class="calendar-date">21</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td onclick="openTimesheetModal('2025-08-22')">
+                            <div class="calendar-date">22</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-23')">
+                            <div class="calendar-date">23</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-24')">
+                            <div class="calendar-date">24</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-25')">
+                            <div class="calendar-date">25</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-26')">
+                            <div class="calendar-date">26</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-27')">
+                            <div class="calendar-date">27</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-28')">
+                            <div class="calendar-date">28</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td onclick="openTimesheetModal('2025-08-29')">
+                            <div class="calendar-date">29</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-30')">
+                            <div class="calendar-date">30</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td onclick="openTimesheetModal('2025-08-31')">
+                            <div class="calendar-date">31</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td class="other-month">
+                            <div class="calendar-date">1</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td class="other-month">
+                            <div class="calendar-date">2</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td class="other-month">
+                            <div class="calendar-date">3</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                        <td class="other-month">
+                            <div class="calendar-date">4</div>
+                            <div class="calendar-status"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
