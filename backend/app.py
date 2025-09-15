@@ -115,7 +115,7 @@ def get_projects():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT id, project_code, project_name, status FROM projects ORDER BY project_code")
+        cursor.execute("SELECT id, project_code, project_name, status FROM projects WHERE project_code <> 'P000000000000' ORDER BY project_code")
         projects = cursor.fetchall()
         return jsonify(projects)
     except Error as e:
@@ -161,6 +161,8 @@ def get_projects_detailed():
                 p.status
             FROM 
                 projects p
+            WHERE
+                p.project_code <> 'P000000000000'
             GROUP BY
                 p.id, p.project_code, p.project_name, p.status
             ORDER BY 

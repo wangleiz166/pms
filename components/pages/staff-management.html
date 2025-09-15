@@ -5,10 +5,23 @@
     </div>
 
     <div class="page-content">
-        <!-- 搜索区域 -->
-        <div class="search-section">
-            <div class="search-bar">
-                <input type="text" id="employeeSearch" placeholder="搜索员工姓名或部门..." class="search-input">
+        <!-- 搜索区域（去掉外层框） -->
+        <div class="search-filters">
+            <div class="filter-group">
+                <label>部门：</label>
+                <select class="filter-select" id="departmentFilter" onchange="filterByDepartment()">
+                    <option value="">全部部门</option>
+                    <option value="技术部">技术部</option>
+                    <option value="产品部">产品部</option>
+                    <option value="运营部">运营部</option>
+                    <option value="人事部">人事部</option>
+                    <option value="财务部">财务部</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>搜索：</label>
+                <input type="text" id="employeeSearch" placeholder="员工姓名..." class="search-input">
                 <button class="search-btn" onclick="searchEmployees()">搜索</button>
             </div>
         </div>

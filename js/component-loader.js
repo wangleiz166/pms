@@ -56,7 +56,12 @@ class ComponentLoader {
      * @returns {Promise<string>}
      */
     async fetchComponent(componentPath) {
-        const response = await fetch(componentPath);
+        // 添加时间戳避免浏览器缓存，确保获取到最新的组件内容
+        const cacheBuster = `v=${Date.now()}`;
+        const url = componentPath.includes('?')
+            ? `${componentPath}&${cacheBuster}`
+            : `${componentPath}?${cacheBuster}`;
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -234,6 +239,8 @@ const PAGE_COMPONENTS = {
     'timesheet': 'components/pages/timesheet.html',
     'project-management': 'components/pages/project-management.html',
     'staff-management': 'components/pages/staff-management.html',
+    'team-management': 'components/pages/team-management.html',
+    'budget-management': 'components/pages/budget-management.html',
     'approval-center': 'components/pages/approval-center.html',
     'report-analysis': 'components/pages/report-analysis.html',
     'financial-flow': 'components/pages/financial-flow.html',

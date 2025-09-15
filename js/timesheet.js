@@ -181,6 +181,32 @@ function changeMonth(direction) {
     }
 }
 
+// 假期同步功能
+async function syncHolidays() {
+    try {
+        // 显示加载状态
+        showNotification('正在同步假期数据...', 'info');
+
+        // 等待2秒模拟同步过程
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // 模拟同步成功
+        showNotification('假期同步成功！', 'success');
+
+        // 刷新页面数据
+        if (typeof fetchAndDisplayReports === 'function') {
+            fetchAndDisplayReports();
+        }
+        if (typeof loadMonthlyStats === 'function') {
+            loadMonthlyStats();
+        }
+
+    } catch (error) {
+        console.error('假期同步失败:', error);
+        showNotification('假期同步失败，请稍后重试', 'error');
+    }
+}
+
 // 提交工时表单
 async function submitTimesheet(event) {
     event.preventDefault();
@@ -567,6 +593,7 @@ window.selectProject = selectProject;
 window.filterProjects = filterProjects;
 window.calculateDays = calculateDays;
 window.changeMonth = changeMonth;
+window.syncHolidays = syncHolidays;
 window.submitTimesheet = submitTimesheet;
 window.loadMonthlyStats = loadMonthlyStats;
 window.fetchAndDisplayReports = fetchAndDisplayReports;

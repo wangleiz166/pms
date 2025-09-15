@@ -15,27 +15,48 @@
     </div>
 
     <div class="page-content">
+        <!-- 筛选区域 -->
+        <div class="search-filters">
+            <div class="filter-group">
+                <label>项目类型：</label>
+                <select class="filter-select" id="projectTypeFilter" onchange="filterProjectType()">
+                    <option value="">全部</option>
+                    <option value="交付型">交付型</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>搜索：</label>
+                <input type="text" id="projectSearch" placeholder="项目编码/项目名称..." class="search-input">
+                <button class="search-btn" onclick="searchProjects()">搜索</button>
+            </div>
+        </div>
+
         <!-- 项目列表 -->
         <div class="table-container">
             <div class="table-header">
                 <h3>项目列表</h3>
                 <div class="table-actions">
-                    <input type="text" id="projectSearch" placeholder="搜索项目名称..." class="search-input" onkeyup="searchProjects()">
+                    <!-- 顶部右侧保留为空，主要使用上方统一筛选样式 -->
                 </div>
             </div>
             
-            <table class="data-table">
+            <table class="data-table equal-cols-8">
                 <thead>
                     <tr>
-                        <th>项目编码</th>
-                        <th>项目名称</th>
-                        <th>项目类型</th>
-                        <th>操作</th>
+                        <th style="text-align: center; white-space: nowrap;">序号</th>
+                        <th style="white-space: nowrap; text-align: left;">项目编码</th>
+                        <th style="white-space: nowrap; text-align: left;">项目名称</th>
+                        <th style="white-space: nowrap; text-align: left;">项目经理</th>
+                        <th style="white-space: nowrap; text-align: left;">项目类型</th>
+                        <th style="white-space: nowrap; text-align: left;">预算人天</th>
+                        <th style="white-space: nowrap; text-align: left;">报工人天</th>
+                        <th class="op-col" style="white-space: nowrap; text-align: left;">操作</th>
                     </tr>
                 </thead>
                 <tbody id="project-list-tbody">
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
+                        <td colspan="8" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
                     </tr>
                 </tbody>
             </table>

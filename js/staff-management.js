@@ -6,6 +6,8 @@ const API_BASE_URL = 'http://127.0.0.1:5001';
 let currentEmployeePage = 1;
 let totalEmployeePages = 1;
 let employeeSearchTerm = '';
+let currentEmployeeType = 'all';
+let currentDepartment = '';
 
 // 页面初始化（绑定到全局，确保 main.js 可访问）
 window.initializeStaffManagementPage = function() {
@@ -173,3 +175,43 @@ function editEmployee(employeeId) {
 function deleteEmployee(employeeId) {
     showNotification('删除功能暂未开放', 'info');
 }
+
+// 按员工类型筛选
+function filterByType(type) {
+    currentEmployeeType = type;
+    currentEmployeePage = 1;
+    
+    // 更新按钮状态
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-type="${type}"]`).classList.add('active');
+    
+    // 重新加载数据
+    loadEmployeeList();
+}
+
+// 按部门筛选
+function filterByDepartment() {
+    const select = document.getElementById('departmentFilter');
+    currentDepartment = select.value;
+    currentEmployeePage = 1;
+    
+    // 重新加载数据
+    loadEmployeeList();
+}
+
+// 搜索员工
+function searchEmployees() {
+    const searchInput = document.getElementById('employeeSearch');
+    employeeSearchTerm = searchInput.value.trim();
+    currentEmployeePage = 1;
+    
+    // 重新加载数据
+    loadEmployeeList();
+}
+
+// 将新函数暴露到全局作用域
+window.filterByType = filterByType;
+window.filterByDepartment = filterByDepartment;
+window.searchEmployees = searchEmployees;

@@ -1,0 +1,398 @@
+<!-- 团队管理页面 -->
+<div id="team-managementPage" class="page">
+    <div class="page-header">
+        <h1>团队管理</h1>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="showTeamForm()">
+                <span class="btn-icon">+</span>
+                新建团队
+            </button>
+            <button class="btn btn-secondary" onclick="loadTeamList()">
+                <span class="btn-icon">🔄</span>
+                刷新
+            </button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- 团队统计卡片 -->
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="stats-icon">👥</div>
+                <div class="stats-content">
+                    <div class="stats-number" id="totalTeams">4</div>
+                    <div class="stats-label">总团队数</div>
+                </div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-icon">👤</div>
+                <div class="stats-content">
+                    <div class="stats-number" id="totalMembers">14</div>
+                    <div class="stats-label">总成员数</div>
+                </div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-icon">📊</div>
+                <div class="stats-content">
+                    <div class="stats-number" id="avgTeamSize">3.5</div>
+                    <div class="stats-label">平均团队规模</div>
+                </div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-icon">⚡</div>
+                <div class="stats-content">
+                    <div class="stats-number" id="activeTeams">3</div>
+                    <div class="stats-label">活跃团队</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 团队列表 -->
+        <div class="teams-container">
+            <div class="teams-header">
+                <h3>团队列表</h3>
+                <div class="teams-actions">
+                    <input type="text" id="teamSearch" placeholder="搜索团队名称..." class="search-input" onkeyup="searchTeams()">
+                    <select id="teamFilter" class="filter-select" onchange="filterTeams()">
+                        <option value="">所有团队</option>
+                        <option value="active">活跃团队</option>
+                        <option value="inactive">非活跃团队</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="teams-grid" id="teamsGrid">
+                <!-- 团队卡片将在这里动态生成 -->
+                <div class="team-card" onclick="viewTeamDetail(1)">
+                    <div class="team-card-header">
+                        <div class="team-avatar">👥</div>
+                        <div class="team-info">
+                            <h4>前端开发团队</h4>
+                            <p>负责前端界面开发和用户体验优化</p>
+                        </div>
+                    </div>
+                    
+                    <div class="team-meta">
+                        <div class="team-meta-item">
+                            <span class="meta-icon">👤</span>
+                            <span>负责人: 张三</span>
+                        </div>
+                        <div class="team-meta-item">
+                            <span class="meta-icon">📅</span>
+                            <span>2024-01-15</span>
+                        </div>
+                    </div>
+                    
+                    <div class="team-stats">
+                        <div class="team-stat">
+                            <span class="team-stat-number">5</span>
+                            <span class="team-stat-label">成员</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">1200</span>
+                            <span class="team-stat-label">总工时</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">3</span>
+                            <span class="team-stat-label">项目</span>
+                        </div>
+                        <div class="team-status active">
+                            活跃
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card" onclick="viewTeamDetail(2)">
+                    <div class="team-card-header">
+                        <div class="team-avatar">👥</div>
+                        <div class="team-info">
+                            <h4>后端开发团队</h4>
+                            <p>负责后端API开发和数据库设计</p>
+                        </div>
+                    </div>
+                    
+                    <div class="team-meta">
+                        <div class="team-meta-item">
+                            <span class="meta-icon">👤</span>
+                            <span>负责人: 李四</span>
+                        </div>
+                        <div class="team-meta-item">
+                            <span class="meta-icon">📅</span>
+                            <span>2024-01-20</span>
+                        </div>
+                    </div>
+                    
+                    <div class="team-stats">
+                        <div class="team-stat">
+                            <span class="team-stat-number">4</span>
+                            <span class="team-stat-label">成员</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">980</span>
+                            <span class="team-stat-label">总工时</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">2</span>
+                            <span class="team-stat-label">项目</span>
+                        </div>
+                        <div class="team-status active">
+                            活跃
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card" onclick="viewTeamDetail(3)">
+                    <div class="team-card-header">
+                        <div class="team-avatar">👥</div>
+                        <div class="team-info">
+                            <h4>测试团队</h4>
+                            <p>负责软件测试和质量保证</p>
+                        </div>
+                    </div>
+                    
+                    <div class="team-meta">
+                        <div class="team-meta-item">
+                            <span class="meta-icon">👤</span>
+                            <span>负责人: 王五</span>
+                        </div>
+                        <div class="team-meta-item">
+                            <span class="meta-icon">📅</span>
+                            <span>2024-02-01</span>
+                        </div>
+                    </div>
+                    
+                    <div class="team-stats">
+                        <div class="team-stat">
+                            <span class="team-stat-number">3</span>
+                            <span class="team-stat-label">成员</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">720</span>
+                            <span class="team-stat-label">总工时</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">4</span>
+                            <span class="team-stat-label">项目</span>
+                        </div>
+                        <div class="team-status active">
+                            活跃
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card" onclick="viewTeamDetail(4)">
+                    <div class="team-card-header">
+                        <div class="team-avatar">👥</div>
+                        <div class="team-info">
+                            <h4>运维团队</h4>
+                            <p>负责系统运维和部署</p>
+                        </div>
+                    </div>
+                    
+                    <div class="team-meta">
+                        <div class="team-meta-item">
+                            <span class="meta-icon">👤</span>
+                            <span>负责人: 赵六</span>
+                        </div>
+                        <div class="team-meta-item">
+                            <span class="meta-icon">📅</span>
+                            <span>2024-02-10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="team-stats">
+                        <div class="team-stat">
+                            <span class="team-stat-number">2</span>
+                            <span class="team-stat-label">成员</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">480</span>
+                            <span class="team-stat-label">总工时</span>
+                        </div>
+                        <div class="team-stat">
+                            <span class="team-stat-number">1</span>
+                            <span class="team-stat-label">项目</span>
+                        </div>
+                        <div class="team-status inactive">
+                            非活跃
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 团队详情页面 -->
+<div id="teamDetailPage" class="page" style="display: none;">
+    <div class="page-header">
+        <div class="page-header-left">
+            <button class="btn btn-back" onclick="backToTeamList()">
+                <span class="btn-icon">←</span>
+                返回团队列表
+            </button>
+            <h1 id="teamDetailTitle">团队详情</h1>
+        </div>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="editTeam()">
+                <span class="btn-icon">✏️</span>
+                编辑团队
+            </button>
+            <button class="btn btn-secondary" onclick="exportTeamData()">
+                <span class="btn-icon">📊</span>
+                导出数据
+            </button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- 团队基本信息 -->
+        <div class="team-info-section">
+            <div class="team-info-header">
+                <div class="team-avatar-large">
+                    <span id="teamAvatarLarge">👥</span>
+                </div>
+                <div class="team-basic-info">
+                    <h2 id="teamNameLarge">团队名称</h2>
+                    <p id="teamDescriptionLarge">团队描述</p>
+                    <div class="team-meta-large">
+                        <span class="team-meta-item-large">
+                            <span class="meta-icon">👤</span>
+                            <span>负责人: <span id="teamLeaderLarge">--</span></span>
+                        </span>
+                        <span class="team-meta-item-large">
+                            <span class="meta-icon">👥</span>
+                            <span id="teamMemberCountLarge">0</span> 名成员
+                        </span>
+                        <span class="team-meta-item-large">
+                            <span class="meta-icon">📅</span>
+                            创建于 <span id="teamCreateDateLarge">--</span>
+                        </span>
+                        <span class="team-meta-item-large">
+                            <span class="meta-icon">📊</span>
+                            状态: <span id="teamStatusLarge" class="status-badge">--</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标签页导航 -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTeamTab('members')">成员列表</button>
+            <button class="tab-btn" onclick="switchTeamTab('timesheet')">工时汇总</button>
+            <button class="tab-btn" onclick="switchTeamTab('projects')">项目分配</button>
+        </div>
+
+        <!-- 成员列表标签页 -->
+        <div id="teamMembersTab" class="tab-content active">
+            <div class="tab-header">
+                <h3>团队成员</h3>
+                <button class="btn btn-primary" onclick="addTeamMember()">
+                    <span class="btn-icon">+</span>
+                    添加成员
+                </button>
+            </div>
+            <div class="members-table-container">
+                <table class="members-table">
+                    <thead>
+                        <tr>
+                            <th>头像</th>
+                            <th>姓名</th>
+                            <th>角色</th>
+                            <th>本月工时</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersTableBody">
+                        <!-- 成员列表将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 工时汇总标签页 -->
+        <div id="teamTimesheetTab" class="tab-content">
+            <div class="tab-header">
+                <h3>工时汇总</h3>
+                <div class="timesheet-filters">
+                    <select id="timesheetMonth" class="filter-select" onchange="loadTeamTimesheet()">
+                        <option value="2025-08">2025年8月</option>
+                        <option value="2025-07">2025年7月</option>
+                        <option value="2025-06">2025年6月</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="exportTeamTimesheet()">
+                        <span class="btn-icon">📊</span>
+                        导出报表
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 工时统计卡片 -->
+            <div class="timesheet-stats-grid">
+                <div class="timesheet-stat-card">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalHours">--</div>
+                        <div class="stat-label">总工时</div>
+                    </div>
+                </div>
+                <div class="timesheet-stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalDays">--</div>
+                        <div class="stat-label">总人天</div>
+                    </div>
+                </div>
+                <div class="timesheet-stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="avgHoursPerDay">--</div>
+                        <div class="stat-label">日均工时</div>
+                    </div>
+                </div>
+                <div class="timesheet-stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="fillRate">--</div>
+                        <div class="stat-label">填报率</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 工时详情表格 -->
+            <div class="timesheet-table-container">
+                <table class="timesheet-table">
+                    <thead>
+                        <tr>
+                            <th>成员姓名</th>
+                            <th>项目名称</th>
+                            <th>工时</th>
+                            <th>人天</th>
+                            <th>状态</th>
+                            <th>最后更新</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timesheetTableBody">
+                        <!-- 工时详情将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 项目分配标签页 -->
+        <div id="teamProjectsTab" class="tab-content">
+            <div class="tab-header">
+                <h3>项目分配</h3>
+                <button class="btn btn-primary" onclick="assignProject()">
+                    <span class="btn-icon">+</span>
+                    分配项目
+                </button>
+            </div>
+            <div class="projects-grid" id="projectsGrid">
+                <!-- 项目列表将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+</div>

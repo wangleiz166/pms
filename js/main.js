@@ -46,6 +46,12 @@ async function switchPage(pageId) {
             console.log('Staff management page initializer called');
             initializeStaffManagementPage();
         },
+        'budget-management': () => {
+            console.log('Budget management page initializer called');
+            if (typeof initializeBudgetManagementPage === 'function') {
+                initializeBudgetManagementPage();
+            }
+        },
         'team-management': () => {
             console.log('Team management page loaded');
             // 团队管理页面初始化逻辑
@@ -249,6 +255,11 @@ function showProjectForm() {
 function viewProjectPlan(projectId) {
     console.log(`查看项目 ${projectId} 的计划...`);
     showNotification(`查看项目 ${projectId} 计划`, 'info');
+}
+
+function viewProjectMembers(projectId) {
+    console.log('查看项目人员:', projectId);
+    showNotification(`查看项目 ${projectId} 人员`, 'info');
 }
 
 function editProject(projectId) {
@@ -464,7 +475,7 @@ async function fetchTimesheetApprovalData(page = 1) {
     console.log('找到的 tbody 元素:', tbody);
     
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
     }
     
     try {
@@ -492,7 +503,7 @@ async function fetchTimesheetApprovalData(page = 1) {
     } catch (error) {
         console.error('获取报工审核数据失败:', error);
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
         }
         showNotification('获取报工审核数据失败', 'error');
     }
@@ -502,7 +513,7 @@ async function fetchTimesheetApprovalData(page = 1) {
 async function fetchBudgetApprovalData() {
     const tbody = document.getElementById('budget-approval-tbody');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
     }
     
     try {
@@ -523,7 +534,7 @@ async function fetchBudgetApprovalData() {
     } catch (error) {
         console.error('获取预算审核数据失败:', error);
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
         }
         showNotification('获取预算审核数据失败', 'error');
     }
@@ -1125,6 +1136,7 @@ function deleteAPI(apiId) {
 }
 window.showProjectForm = showProjectForm;
 window.viewProjectPlan = viewProjectPlan;
+window.viewProjectMembers = viewProjectMembers;
 window.editProject = editProject;
 window.deleteProject = deleteProject;
 window.viewWebhook = viewWebhook;
@@ -1207,6 +1219,202 @@ window.showProjectForm = showProjectForm;
 window.deleteProject = deleteProject;
 window.openReportAnalysis = openReportAnalysis;
 
+// ======================== 预算管理 ========================
+let budgetsData = [];
+let filteredBudgets = [];
+let currentBudgetPage = 1;
+const budgetsPerPage = 10;
+
+function initializeBudgetManagementPage() {
+    // 初始化或刷新数据
+    loadBudgets();
+}
+
+function loadBudgets() {
+    // 模拟数据（可后续替换为后端接口）
+    if (budgetsData.length === 0) {
+        const depts = ['研发部','产品部','市场部'];
+        const statuses = ['pending','submitted','approved','rejected'];
+        for (let i = 1; i <= 28; i++) {
+            budgetsData.push({
+                id: `B${String(i).padStart(3,'0')}`,
+                project_code: `P2025-${String(i).padStart(3,'0')}`,
+                name: `项目${i}年度预算`,
+                version: `v${Math.ceil(i/5)}.0`,
+                department: depts[i % depts.length],
+                status: statuses[i % statuses.length]
+            });
+        }
+    }
+    // 默认不过滤
+    filteredBudgets = budgetsData.slice();
+    currentBudgetPage = 1;
+    renderBudgetTable();
+}
+
+function getStatusText(status) {
+    switch (status) {
+        case 'pending': return '待提交';
+        case 'submitted': return '已提交';
+        case 'approved': return '已通过';
+        case 'rejected': return '已驳回';
+        default: return status || '';
+    }
+}
+
+function renderBudgetTable() {
+    const tbody = document.getElementById('budget-list-tbody');
+    if (!tbody) return;
+
+    if (!filteredBudgets || filteredBudgets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">暂无预算数据</td></tr>';
+        updateBudgetPagination(0, 0, 0);
+        return;
+    }
+
+    const total = filteredBudgets.length;
+    const pages = Math.ceil(total / budgetsPerPage);
+    const page = Math.min(Math.max(1, currentBudgetPage), pages);
+    const startIdx = (page - 1) * budgetsPerPage;
+    const endIdx = Math.min(startIdx + budgetsPerPage, total);
+    const pageData = filteredBudgets.slice(startIdx, endIdx);
+
+    tbody.innerHTML = pageData.map(item => `
+        <tr>
+            <td>${item.project_code}</td>
+            <td>${item.name}</td>
+            <td>${item.version}</td>
+            <td>${item.department}</td>
+            <td>${getStatusText(item.status)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="submitBudget('${item.id}')">提交</button>
+                    <button class="action-btn delete-btn" onclick="deleteBudget('${item.id}')">删除</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+
+    updateBudgetPagination(total, page, pages);
+}
+
+function updateBudgetPagination(total, page, pages) {
+    const info = document.getElementById('budget-pagination-info');
+    const pagesEl = document.getElementById('budget-pagination-pages');
+    if (info) {
+        if (total === 0) {
+            info.textContent = '显示 0-0 条，共 0 条记录';
+        } else {
+            const start = (page - 1) * budgetsPerPage + 1;
+            const end = Math.min(page * budgetsPerPage, total);
+            info.textContent = `显示 ${start}-${end} 条，共 ${total} 条记录`;
+        }
+    }
+    if (pagesEl) {
+        pagesEl.innerHTML = '';
+        for (let i = 1; i <= pages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `pagination-btn ${i === page ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => changeBudgetPage(i);
+            pagesEl.appendChild(btn);
+        }
+    }
+}
+
+function changeBudgetPage(direction) {
+    if (typeof direction === 'number' && direction > 0) {
+        currentBudgetPage = direction;
+    } else if (direction === -1) {
+        currentBudgetPage = Math.max(1, currentBudgetPage - 1);
+    } else if (direction === 1) {
+        const pages = Math.ceil((filteredBudgets.length || 0) / budgetsPerPage);
+        currentBudgetPage = Math.min(pages, currentBudgetPage + 1);
+    }
+    renderBudgetTable();
+}
+
+function searchBudgets() {
+    const code = (document.getElementById('budgetProjectCode')?.value || '').trim().toLowerCase();
+    const dept = document.getElementById('budgetDept')?.value || '';
+    const status = document.getElementById('budgetStatus')?.value || '';
+    filteredBudgets = budgetsData.filter(b => {
+        const matchCode = !code || (b.project_code || '').toLowerCase().includes(code);
+        const matchDept = !dept || b.department === dept;
+        const matchStatus = !status || b.status === status;
+        return matchCode && matchDept && matchStatus;
+    });
+    currentBudgetPage = 1;
+    renderBudgetTable();
+}
+
+function openNewBudgetModal() {
+    const modal = document.getElementById('newBudgetModal');
+    if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
+}
+
+function closeNewBudgetModal() {
+    const modal = document.getElementById('newBudgetModal');
+    if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+    }
+}
+
+function saveBudget() {
+    const code = document.getElementById('nbProjectCode')?.value?.trim();
+    const name = document.getElementById('nbName')?.value?.trim();
+    const version = document.getElementById('nbVersion')?.value?.trim();
+    const dept = document.getElementById('nbDept')?.value;
+    if (!code || !name || !version || !dept) {
+        showNotification('请完善必填项', 'warning');
+        return;
+    }
+    budgetsData.unshift({
+        id: `B${Date.now()}`,
+        project_code: code,
+        name,
+        version,
+        department: dept,
+        status: 'pending'
+    });
+    closeNewBudgetModal();
+    searchBudgets();
+    showNotification('预算已创建', 'success');
+}
+
+function submitBudget(id) {
+    const item = budgetsData.find(b => b.id === id);
+    if (!item) return;
+    if (item.status === 'approved') {
+        showNotification('该预算已通过，无需提交', 'info');
+        return;
+    }
+    item.status = 'submitted';
+    renderBudgetTable();
+    showNotification('已提交预算', 'success');
+}
+
+function deleteBudget(id) {
+    if (!confirm('确定要删除该预算吗？')) return;
+    budgetsData = budgetsData.filter(b => b.id !== id);
+    searchBudgets();
+    showNotification('预算已删除', 'success');
+}
+
+// 导出到全局
+window.initializeBudgetManagementPage = initializeBudgetManagementPage;
+window.searchBudgets = searchBudgets;
+window.changeBudgetPage = changeBudgetPage;
+window.openNewBudgetModal = openNewBudgetModal;
+window.closeNewBudgetModal = closeNewBudgetModal;
+window.saveBudget = saveBudget;
+window.submitBudget = submitBudget;
+window.deleteBudget = deleteBudget;
+
 window.editEmployee = editEmployee;
 window.deleteEmployee = deleteEmployee;
 window.showNotification = showNotification;
@@ -1225,7 +1433,7 @@ async function loadProjectList() {
     
     const tbody = document.getElementById('project-list-tbody');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td></tr>';
     }
     
     try {
@@ -1252,7 +1460,7 @@ async function loadProjectList() {
     } catch (error) {
         console.error('获取项目列表失败:', error);
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f44336;">加载数据失败，请检查网络连接</td></tr>';
         }
         showNotification('获取项目列表失败', 'error');
     }
@@ -1269,27 +1477,43 @@ function updateProjectListTable(projects) {
     tbody.innerHTML = '';
     
     if (!projects || !Array.isArray(projects) || projects.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">暂无项目数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #999;">暂无项目数据</td></tr>';
         return;
     }
     
-    projects.forEach(project => {
+    let index = 1;
+    const typeFilterEl = document.getElementById('projectTypeFilter');
+    const typeFilter = typeFilterEl ? (typeFilterEl.value || '') : '';
+    projects
+      .filter(p => !typeFilter || typeFilter === '交付型')
+      .forEach(project => {
         const row = document.createElement('tr');
-        
+        let code = project.code || project.project_code || '-';
+        if (code === 'P000000000000') {
+            code = '-';
+        }
+        const name = project.name || project.project_name || '-';
+        const type = '交付型';
         row.innerHTML = `
-            <td>${project.project_code || '-'}</td>
-            <td>${project.project_name || '-'}</td>
-            <td>交付型项目</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="action-btn edit-btn" onclick="editProject('${project.id}')">编辑</button>
-                    <button class="action-btn delete-btn" onclick="deleteProject('${project.id}')">删除</button>
-                </div>
+            <td style=\"text-align: center;\">${index++}</td>
+            <td>${code}</td>
+            <td>${name}</td>
+            <td>王磊</td>
+            <td>${type}</td>
+            <td>500.00</td>
+            <td>500.00</td>
+            <td class=\"op-col\">
+                <div class=\"action-buttons\">\n                    <button class=\"action-btn view-btn\" onclick=\"viewProjectMembers('${project.id}')\">项目人员</button>\n                    <button class=\"action-btn edit-btn\" onclick=\"editProject('${project.id}')\">编辑</button>\n                    <button class=\"action-btn delete-btn\" onclick=\"deleteProject('${project.id}')\">删除</button>\n                </div>
             </td>
         `;
         tbody.appendChild(row);
     });
 }
+
+function filterProjectType() {
+    loadProjectList();
+}
+window.filterProjectType = filterProjectType;
 
 // 获取项目状态信息
 function getProjectStatusInfo(status) {

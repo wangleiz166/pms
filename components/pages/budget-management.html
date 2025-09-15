@@ -1,0 +1,108 @@
+<!-- 预算管理页面 -->
+<div id="budget-managementPage" class="page" style="display: none; width: 100%; padding: 20px; box-sizing: border-box;">
+    <div class="page-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <h1 style="margin: 0; font-size: 20px; color: #333;">预算管理</h1>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="openNewBudgetModal()">新建预算</button>
+        </div>
+    </div>
+
+    <!-- 筛选区（复用全局灰白样式） -->
+    <div class="search-filters" style="margin-bottom: 16px;">
+        <div class="filter-group">
+            <label>项目编码</label>
+            <input type="text" id="budgetProjectCode" class="search-input" placeholder="输入项目编码">
+        </div>
+        <div class="filter-group">
+            <label>所属部门</label>
+            <select id="budgetDept" class="filter-select">
+                <option value="">全部</option>
+                <option value="研发部">研发部</option>
+                <option value="产品部">产品部</option>
+                <option value="市场部">市场部</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>审批状态</label>
+            <select id="budgetStatus" class="filter-select">
+                <option value="">全部</option>
+                <option value="pending">待提交</option>
+                <option value="submitted">已提交</option>
+                <option value="approved">已通过</option>
+                <option value="rejected">已驳回</option>
+            </select>
+        </div>
+        <button class="filter-btn" onclick="searchBudgets()">搜索</button>
+    </div>
+
+    <!-- 列表 -->
+    <div class="card">
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                <table class="data-table" style="min-width: 900px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 160px; white-space: nowrap;">项目编码</th>
+                            <th style="width: 220px; white-space: nowrap;">预算名称</th>
+                            <th style="width: 120px; white-space: nowrap;">版本号</th>
+                            <th style="width: 160px; white-space: nowrap;">所属部门</th>
+                            <th style="width: 120px; white-space: nowrap;">审批状态</th>
+                            <th style="width: 200px; white-space: nowrap; text-align: left;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="budget-list-tbody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页（全局置中样式） -->
+            <div class="pagination-container" style="margin-top: 12px;">
+                <div class="pagination-controls">
+                    <span id="budget-pagination-info" class="pagination-info">显示 0-0 条，共 0 条记录</span>
+                    <button class="pagination-btn" onclick="changeBudgetPage(-1)">上一页</button>
+                    <div id="budget-pagination-pages" class="pagination-pages"></div>
+                    <button class="pagination-btn" onclick="changeBudgetPage(1)">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建预算 Modal -->
+    <div id="newBudgetModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3>新建预算</h3>
+                <button class="modal-close" onclick="closeNewBudgetModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>项目编码</label>
+                    <input id="nbProjectCode" class="form-input" placeholder="如 P2025-001">
+                </div>
+                <div class="form-group">
+                    <label>预算名称</label>
+                    <input id="nbName" class="form-input" placeholder="如 2025年Q4开发预算">
+                </div>
+                <div class="form-group">
+                    <label>版本号</label>
+                    <input id="nbVersion" class="form-input" placeholder="如 v1.0">
+                </div>
+                <div class="form-group">
+                    <label>所属部门</label>
+                    <select id="nbDept" class="form-input">
+                        <option value="研发部">研发部</option>
+                        <option value="产品部">产品部</option>
+                        <option value="市场部">市场部</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeNewBudgetModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveBudget()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>

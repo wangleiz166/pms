@@ -55,7 +55,7 @@ async function loadProjectList() {
         console.error('Failed to load project list:', error);
         const tbody = document.getElementById('project-list-tbody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="7" class="error-message">数据加载失败: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="error-message">数据加载失败: ${error.message}</td></tr>`;
         }
     }
 }
@@ -66,15 +66,23 @@ function updateProjectListTable(projects) {
     if (!tbody) return;
 
     if (projects.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">没有找到项目</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">没有找到项目</td></tr>';
         return;
     }
 
-    tbody.innerHTML = projects.map(project => `
+    // 计算序号起始值：当前页从1开始自增
+    const startIndex = 1;
+
+    tbody.innerHTML = projects.map((project, index) => {
+        const code = project.code || project.project_code || 'N/A';
+        const name = project.name || project.project_name || 'N/A';
+        const type = project.type || project.project_type || project.status || '—';
+        return `
         <tr>
-            <td>${project.project_code || 'N/A'}</td>
-            <td>${project.project_name || 'N/A'}</td>
-            <td>交付型项目</td>
+            <td style="text-align: center;">${startIndex + index}</td>
+            <td>${code}</td>
+            <td>${name}</td>
+            <td>${type}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit-btn" onclick="editProject(${project.id})">编辑</button>
@@ -82,7 +90,8 @@ function updateProjectListTable(projects) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // 更新项目统计
