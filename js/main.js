@@ -257,9 +257,185 @@ function viewProjectPlan(projectId) {
     showNotification(`查看项目 ${projectId} 计划`, 'info');
 }
 
+// 项目成员管理相关变量
+let currentProjectId = null;
+let projectMembers = [];
+
 function viewProjectMembers(projectId) {
     console.log('查看项目人员:', projectId);
-    showNotification(`查看项目 ${projectId} 人员`, 'info');
+    currentProjectId = projectId;
+    
+    // 更新模态框标题
+    const titleEl = document.getElementById('projectMembersTitle');
+    if (titleEl) {
+        titleEl.textContent = `项目成员管理 - ${projectId}`;
+    }
+    
+    // 显示模态框
+    const modal = document.getElementById('projectMembersModal');
+    if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
+    
+    // 加载项目成员数据
+    loadProjectMembers(projectId);
+}
+
+function closeProjectMembersModal() {
+    const modal = document.getElementById('projectMembersModal');
+    if (modal) {
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+    }
+    currentProjectId = null;
+}
+
+function loadProjectMembers(projectId) {
+    // 模拟数据，实际应该从后端获取
+    projectMembers = [
+        {
+            id: 1,
+            projectRole: '项目经理',
+            personnelType: '内部员工',
+            member: '王磊',
+            entryDate: '2025-01-01',
+            exitDate: '',
+            budgetDays: 100
+        },
+        {
+            id: 2,
+            projectRole: '开发工程师',
+            personnelType: '内部员工',
+            member: '张三',
+            entryDate: '2025-01-15',
+            exitDate: '',
+            budgetDays: 80
+        },
+        {
+            id: 3,
+            projectRole: '测试工程师',
+            personnelType: '外包人员',
+            member: '李四',
+            entryDate: '2025-01-20',
+            exitDate: '2025-06-30',
+            budgetDays: 60
+        },
+        {
+            id: 4,
+            projectRole: 'UI设计师',
+            personnelType: '实习生',
+            member: '王五',
+            entryDate: '2025-02-01',
+            exitDate: '',
+            budgetDays: 40
+        }
+    ];
+    
+    renderProjectMembersList();
+}
+
+function renderProjectMembersList() {
+    const tbody = document.getElementById('projectMembersList');
+    if (!tbody) return;
+    
+    if (projectMembers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">暂无成员数据</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = projectMembers.map(member => `
+        <tr style="border-bottom: 1px solid #f0f0f0;">
+            <td style="padding: 16px 12px; font-size: 14px;">${member.projectRole}</td>
+            <td style="padding: 16px 12px; font-size: 14px;">${member.personnelType}</td>
+            <td style="padding: 16px 12px; font-size: 14px; font-weight: 500;">${member.member}</td>
+            <td style="padding: 16px 12px; font-size: 14px;">${member.entryDate}</td>
+            <td style="padding: 16px 12px; font-size: 14px;">${member.exitDate || '-'}</td>
+            <td style="padding: 16px 12px; font-size: 14px; text-align: center;">${member.budgetDays}</td>
+            <td style="padding: 16px 12px;">
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="editProjectMember(${member.id})">编辑</button>
+                    <button class="action-btn delete-btn" onclick="removeProjectMember(${member.id})">移除</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function addProjectMember() {
+    const projectRole = document.getElementById('pmProjectRole')?.value?.trim();
+    const personnelType = document.getElementById('pmPersonnelType')?.value?.trim();
+    const member = document.getElementById('pmMember')?.value?.trim();
+    const entryDate = document.getElementById('pmEntryDate')?.value?.trim();
+    const exitDate = document.getElementById('pmExitDate')?.value?.trim();
+    const budgetDays = document.getElementById('pmBudgetDays')?.value?.trim();
+    
+    if (!projectRole || !personnelType || !member || !entryDate || !budgetDays) {
+        showNotification('请完善必填项', 'warning');
+        return;
+    }
+    
+    // 检查是否已存在该成员
+    const existingMember = projectMembers.find(m => m.member === member);
+    if (existingMember) {
+        showNotification('该成员已存在于项目中', 'warning');
+        return;
+    }
+    
+    // 添加新成员
+    const newMember = {
+        id: Date.now(),
+        projectRole,
+        personnelType,
+        member,
+        entryDate,
+        exitDate: exitDate || '',
+        budgetDays: parseFloat(budgetDays)
+    };
+    
+    projectMembers.push(newMember);
+    renderProjectMembersList();
+    clearProjectMemberForm();
+    showNotification('成员添加成功', 'success');
+}
+
+function clearProjectMemberForm() {
+    document.getElementById('pmProjectRole').value = '';
+    document.getElementById('pmPersonnelType').value = '';
+    document.getElementById('pmMember').value = '';
+    document.getElementById('pmEntryDate').value = '';
+    document.getElementById('pmExitDate').value = '';
+    document.getElementById('pmBudgetDays').value = '';
+}
+
+function editProjectMember(memberId) {
+    const member = projectMembers.find(m => m.id === memberId);
+    if (!member) return;
+    
+    // 填充表单
+    document.getElementById('pmProjectRole').value = member.projectRole;
+    document.getElementById('pmPersonnelType').value = member.personnelType;
+    document.getElementById('pmMember').value = member.member;
+    document.getElementById('pmEntryDate').value = member.entryDate;
+    document.getElementById('pmExitDate').value = member.exitDate;
+    document.getElementById('pmBudgetDays').value = member.budgetDays;
+    
+    showNotification('已加载成员信息到表单，请修改后重新添加', 'info');
+}
+
+function removeProjectMember(memberId) {
+    if (!confirm('确定要移除该成员吗？')) return;
+    
+    projectMembers = projectMembers.filter(m => m.id !== memberId);
+    renderProjectMembersList();
+    showNotification('成员已移除', 'success');
+}
+
+function openProjectBoard(projectId) {
+    console.log('打开项目看板:', projectId);
+    // 在新标签页中打开项目看板
+    window.open('http://10.10.201.76:8100/#/de-link/PStBiMLR', '_blank');
+    showNotification('正在打开项目看板...', 'info');
 }
 
 function editProject(projectId) {
@@ -1137,6 +1313,12 @@ function deleteAPI(apiId) {
 window.showProjectForm = showProjectForm;
 window.viewProjectPlan = viewProjectPlan;
 window.viewProjectMembers = viewProjectMembers;
+window.closeProjectMembersModal = closeProjectMembersModal;
+window.addProjectMember = addProjectMember;
+window.clearProjectMemberForm = clearProjectMemberForm;
+window.editProjectMember = editProjectMember;
+window.removeProjectMember = removeProjectMember;
+window.openProjectBoard = openProjectBoard;
 window.editProject = editProject;
 window.deleteProject = deleteProject;
 window.viewWebhook = viewWebhook;
@@ -1503,7 +1685,7 @@ function updateProjectListTable(projects) {
             <td>500.00</td>
             <td>500.00</td>
             <td class=\"op-col\">
-                <div class=\"action-buttons\">\n                    <button class=\"action-btn view-btn\" onclick=\"viewProjectMembers('${project.id}')\">项目人员</button>\n                    <button class=\"action-btn edit-btn\" onclick=\"editProject('${project.id}')\">编辑</button>\n                    <button class=\"action-btn delete-btn\" onclick=\"deleteProject('${project.id}')\">删除</button>\n                </div>
+                <div class=\"action-buttons\">\n                    <button class=\"action-btn view-btn\" onclick=\"viewProjectMembers('${project.id}')\">项目人员</button>\n                    <button class=\"action-btn board-btn\" onclick=\"openProjectBoard('${project.id}')\">项目看板</button>\n                    <button class=\"action-btn edit-btn\" onclick=\"editProject('${project.id}')\">编辑</button>\n                    <button class=\"action-btn delete-btn\" onclick=\"deleteProject('${project.id}')\">删除</button>\n                </div>
             </td>
         `;
         tbody.appendChild(row);

@@ -9,6 +9,8 @@
         <div class="tab-navigation">
             <button class="tab-btn active" onclick="switchSystemTab('users')">用户管理</button>
             <button class="tab-btn" onclick="switchSystemTab('roles')">角色权限</button>
+            <button class="tab-btn" onclick="switchSystemTab('data-permission')">数据权限</button>
+            <button class="tab-btn" onclick="switchSystemTab('scheduled-notification')">定时通知</button>
             <button class="tab-btn" onclick="switchSystemTab('settings')">系统设置</button>
             <button class="tab-btn" onclick="switchSystemTab('logs')">操作日志</button>
         </div>
@@ -85,6 +87,88 @@
                                 <div class="action-buttons">
                                     <button class="action-btn edit-btn" onclick="editRole('admin')">编辑</button>
                                     <button class="action-btn delete-btn" onclick="deleteRole('admin')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 数据权限标签页 -->
+        <div id="system-data-permission" class="tab-content">
+            <div class="tab-header">
+                <h3>数据权限</h3>
+                <button class="btn btn-primary" onclick="showDataPermissionForm()">
+                    <span class="btn-icon">+</span>
+                    新增权限
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>权限名称</th>
+                            <th>数据类型</th>
+                            <th>权限范围</th>
+                            <th>适用角色</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>项目数据查看</td>
+                            <td>项目信息</td>
+                            <td>部门内</td>
+                            <td>项目经理</td>
+                            <td><span class="status-badge status-active">启用</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="editDataPermission('project-view')">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteDataPermission('project-view')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 定时通知标签页 -->
+        <div id="system-scheduled-notification" class="tab-content">
+            <div class="tab-header">
+                <h3>定时通知</h3>
+                <button class="btn btn-primary" onclick="showNotificationForm()">
+                    <span class="btn-icon">+</span>
+                    新增通知
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>通知名称</th>
+                            <th>通知类型</th>
+                            <th>发送时间</th>
+                            <th>接收对象</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>报工审核提醒</td>
+                            <td>审核提醒</td>
+                            <td>报工后3天</td>
+                            <td>审核人员</td>
+                            <td><span class="status-badge status-active">启用</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn edit-btn" onclick="editNotification('timesheet-review')">编辑</button>
+                                    <button class="action-btn delete-btn" onclick="deleteNotification('timesheet-review')">删除</button>
                                 </div>
                             </td>
                         </tr>
@@ -221,6 +305,42 @@ function resetSystemSettings() {
 function filterLogs() {
     console.log('筛选日志');
     showNotification('日志筛选功能开发中', 'info');
+}
+
+// 数据权限相关函数
+function showDataPermissionForm() {
+    console.log('显示数据权限表单');
+    showNotification('数据权限表单功能开发中', 'info');
+}
+
+function editDataPermission(permissionId) {
+    console.log('编辑数据权限:', permissionId);
+    showNotification(`编辑数据权限 ${permissionId}`, 'info');
+}
+
+function deleteDataPermission(permissionId) {
+    if (confirm(`确定要删除数据权限 ${permissionId} 吗？`)) {
+        console.log('删除数据权限:', permissionId);
+        showNotification(`数据权限 ${permissionId} 已删除`, 'success');
+    }
+}
+
+// 定时通知相关函数
+function showNotificationForm() {
+    console.log('显示定时通知表单');
+    showNotification('定时通知表单功能开发中', 'info');
+}
+
+function editNotification(notificationId) {
+    console.log('编辑定时通知:', notificationId);
+    showNotification(`编辑定时通知 ${notificationId}`, 'info');
+}
+
+function deleteNotification(notificationId) {
+    if (confirm(`确定要删除定时通知 ${notificationId} 吗？`)) {
+        console.log('删除定时通知:', notificationId);
+        showNotification(`定时通知 ${notificationId} 已删除`, 'success');
+    }
 }
 
 // 页面加载时初始化

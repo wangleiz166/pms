@@ -65,6 +65,7 @@ function updateEmployeeListTable(employees) {
             <td>${employee.department || '未分配部门'}</td>
             <td>
                 <div class="action-buttons">
+                    <button class="action-btn board-btn" onclick="openTimesheetBoard(${employee.id})">报工看板</button>
                     <button class="action-btn edit-btn" onclick="editEmployee(${employee.id})">编辑</button>
                     <button class="action-btn delete-btn" onclick="deleteEmployee(${employee.id})">删除</button>
                 </div>
@@ -176,6 +177,12 @@ function deleteEmployee(employeeId) {
     showNotification('删除功能暂未开放', 'info');
 }
 
+// 报工看板 - 新标签页打开
+function openTimesheetBoard(employeeId) {
+    console.log('打开报工看板:', employeeId);
+    window.open('http://10.10.201.76:8100/#/de-link/PLgPsH9r', '_blank');
+}
+
 // 按员工类型筛选
 function filterByType(type) {
     currentEmployeeType = type;
@@ -215,3 +222,4 @@ function searchEmployees() {
 window.filterByType = filterByType;
 window.filterByDepartment = filterByDepartment;
 window.searchEmployees = searchEmployees;
+window.openTimesheetBoard = openTimesheetBoard;

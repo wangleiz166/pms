@@ -108,3 +108,98 @@
         </div>
     </div>
 </div>
+
+<!-- 项目成员管理 Modal -->
+<div id="projectMembersModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 id="projectMembersTitle">项目成员管理</h3>
+            <button class="modal-close" onclick="closeProjectMembersModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- 新增成员表单 -->
+            <div class="form-section" style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 16px; color: #333;">新增项目成员</h4>
+                <div class="form-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; margin-bottom: 4px;">项目角色</label>
+                        <select id="pmProjectRole" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                            <option value="">请选择项目角色</option>
+                            <option value="项目经理">项目经理</option>
+                            <option value="技术负责人">技术负责人</option>
+                            <option value="开发工程师">开发工程师</option>
+                            <option value="测试工程师">测试工程师</option>
+                            <option value="UI设计师">UI设计师</option>
+                            <option value="产品经理">产品经理</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; margin-bottom: 4px;">人员类型</label>
+                        <select id="pmPersonnelType" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                            <option value="">请选择人员类型</option>
+                            <option value="内部员工">内部员工</option>
+                            <option value="外包人员">外包人员</option>
+                            <option value="临时工">临时工</option>
+                            <option value="实习生">实习生</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; margin-bottom: 4px;">成员</label>
+                        <select id="pmMember" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                            <option value="">请选择成员</option>
+                            <option value="张三">张三</option>
+                            <option value="李四">李四</option>
+                            <option value="王五">王五</option>
+                            <option value="赵六">赵六</option>
+                            <option value="钱七">钱七</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; margin-bottom: 4px;">进入日期</label>
+                        <input type="date" id="pmEntryDate" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; margin-bottom: 4px;">撤出日期</label>
+                        <input type="date" id="pmExitDate" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; margin-bottom: 4px;">预算人天</label>
+                        <input type="number" id="pmBudgetDays" class="form-input" placeholder="请输入预算人天" step="0.5" style="padding: 6px 8px; font-size: 13px;">
+                    </div>
+                </div>
+                <div class="form-actions" style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" onclick="addProjectMember()" style="padding: 6px 12px; font-size: 13px;">添加成员</button>
+                    <button class="btn btn-secondary" onclick="clearProjectMemberForm()" style="padding: 6px 12px; font-size: 13px;">清空</button>
+                </div>
+            </div>
+
+            <!-- 成员列表 -->
+            <div class="members-list-section">
+                <h4 style="margin: 0 0 16px 0; font-size: 16px; color: #333;">项目成员列表</h4>
+                <div class="table-container">
+                    <table class="data-table" style="border-spacing: 0; border-collapse: separate;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">项目角色</th>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">人员类型</th>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">成员</th>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">进入日期</th>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">撤出日期</th>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">预算人天</th>
+                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectMembersList">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 20px; color: #999;">暂无成员数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeProjectMembersModal()">关闭</button>
+        </div>
+    </div>
+</div>

@@ -335,6 +335,19 @@ body {
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
+/* 项目看板按钮 - 淡粉色 */
+.board-btn {
+    background-color: #fde7ef;
+    border-color: #f48fb1;
+    color: #ad1457;
+}
+
+.board-btn:hover {
+    background-color: #f8bbd0;
+    border-color: #ec407a;
+    color: #880e4f;
+}
+
 /* 查看按钮 - 蓝色 */
 .view-btn {
     background-color: #e3f2fd;
@@ -1343,7 +1356,7 @@ body {
 /* 项目管理：操作列加宽并保持不换行 */
 .data-table.equal-cols-8 thead th.op-col,
 .data-table.equal-cols-8 tbody td.op-col {
-    width: 260px;
+    width: 320px;
 }
 
 .data-table th {
