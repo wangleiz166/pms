@@ -211,11 +211,25 @@ def get_reports():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        # 获取月份参数，默认为2025年8月
+        year = request.args.get('year', '2025')
+        month = request.args.get('month', '8')
+        
+        # 构建日期范围
+        month_int = int(month)
+        start_date = f"{year}-{month_int:0>2}-01"
+        
+        # 计算月末日期
+        import calendar
+        last_day = calendar.monthrange(int(year), month_int)[1]
+        end_date = f"{year}-{month_int:0>2}-{last_day}"
+        
         query = """
         SELECT 
             wr.id, 
             e.name as employee_name, 
             p.project_name, 
+            p.project_code,
             wr.task_description, 
             wr.hours_spent, 
             wr.report_date,
@@ -223,10 +237,12 @@ def get_reports():
         FROM work_reports wr
         JOIN employees e ON wr.employee_id = e.id
         JOIN projects p ON wr.project_id = p.id
-        WHERE wr.employee_id = %s
+        WHERE wr.employee_id = %s 
+          AND wr.report_date >= %s 
+          AND wr.report_date <= %s
         ORDER BY wr.report_date DESC
         """
-        cursor.execute(query, (1,))
+        cursor.execute(query, (1, start_date, end_date))
         reports = cursor.fetchall()
         for report in reports:
             if 'report_date' in report and report['report_date']:
@@ -292,6 +308,9 @@ def get_monthly_stats(year, month):
             else:
                 end_date = f"{year}-{month_int:0>2}-28"  # 平年
         
+        # 获取员工ID参数，默认为1
+        employee_id = request.args.get('employee_id', 1)
+        
         # 获取本月工时统计
         cursor.execute("""
             SELECT 
@@ -299,8 +318,8 @@ def get_monthly_stats(year, month):
                 COALESCE(COUNT(DISTINCT project_id), 0) as project_count,
                 COALESCE(COUNT(DISTINCT DATE(report_date)), 0) as working_days
             FROM work_reports 
-            WHERE report_date >= %s AND report_date <= %s
-        """, (start_date, end_date))
+            WHERE report_date >= %s AND report_date <= %s AND employee_id = %s
+        """, (start_date, end_date, employee_id))
         
         stats = cursor.fetchone()
         
@@ -345,7 +364,7 @@ def get_pending_reports():
         cursor.execute("""
             SELECT COUNT(*) as total
             FROM work_reports 
-            WHERE status = 0 AND employee_id = %s
+            WHERE (status = 0 OR status = 2) AND employee_id = %s
         """, (1,))
         total_count = cursor.fetchone()['total']
         
@@ -365,7 +384,7 @@ def get_pending_reports():
             FROM work_reports wr
             JOIN employees e ON wr.employee_id = e.id
             JOIN projects p ON wr.project_id = p.id
-            WHERE wr.status = 0 AND wr.employee_id = %s
+            WHERE (wr.status = 0 OR wr.status = 2) AND wr.employee_id = %s
             ORDER BY wr.report_date DESC, wr.id DESC
             LIMIT %s OFFSET %s
         """, (1, per_page, offset))
@@ -420,9 +439,41 @@ def reject_report(report_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE work_reports SET status = 2 WHERE id = %s", (report_id,))
+        cursor.execute("UPDATE work_reports SET status = 3 WHERE id = %s", (report_id,))
         conn.commit()
         return jsonify({'message': 'Report rejected successfully'}), 200
+    except Error as e:
+        return jsonify({'message': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/reports/<int:report_id>', methods=['DELETE'])
+def delete_report(report_id):
+    """删除工时记录（撤销功能）"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # 首先检查报工记录是否存在以及状态
+        cursor.execute("SELECT id, status FROM work_reports WHERE id = %s", (report_id,))
+        report = cursor.fetchone()
+        
+        if not report:
+            return jsonify({'message': 'Report not found'}), 404
+        
+        # 只允许删除待审核状态（status = 0）的记录
+        if report['status'] != 0:
+            return jsonify({'message': 'Only pending reports can be withdrawn'}), 400
+        
+        # 删除报工记录
+        cursor.execute("DELETE FROM work_reports WHERE id = %s", (report_id,))
+        conn.commit()
+        
+        if cursor.rowcount > 0:
+            return jsonify({'message': 'Report deleted successfully'}), 200
+        else:
+            return jsonify({'message': 'Report not found or already deleted'}), 404
+            
     except Error as e:
         return jsonify({'message': str(e)}), 500
     finally:

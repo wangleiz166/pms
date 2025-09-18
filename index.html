@@ -6,9 +6,9 @@
     <title>PMS</title>
     
     <!-- CSS 样式文件 -->
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/main.css?v=20250117-login-fixed">
     <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/timesheet.css">
+    <link rel="stylesheet" href="css/timesheet.css?v=20250117-responsive">
     <link rel="stylesheet" href="css/team-management.css">
     <link rel="stylesheet" href="css/ai-assistant.css">
     <link rel="stylesheet" href="css/gantt.css">
@@ -91,12 +91,12 @@
     <div id="notificationContainer"></div>
 
     <!-- JavaScript 文件 -->
-    <script src="js/component-loader.js?v=6"></script>
-    <script src="js/timesheet.js?v=8"></script>
+    <script src="js/component-loader.js?v=8"></script>
+    <script src="js/timesheet.js?v=20250117-current"></script>
     <script src="js/project-management.js?v=6"></script>
     <script src="js/staff-management.js?v=6"></script>
     <script src="js/team-management.js?v=6"></script>
-    <script src="js/main.js?v=6"></script>
+    <script src="js/main.js?v=20250117-4"></script>
     <script src="js/ai-assistant.js?v=6"></script>
     
     <script>
@@ -108,9 +108,9 @@
                 console.log('Calling initializeApp...');
                 await initializeApp();
                 
-                // 显示主应用
-                console.log('Showing main app...');
-                document.getElementById('mainApp').style.display = 'block';
+                // 首先显示登录页面
+                console.log('Showing login page...');
+                showLoginPage();
                 
                 console.log('App initialization completed successfully');
             } catch (error) {
@@ -118,6 +118,152 @@
                 showErrorState('应用启动失败，请刷新页面重试');
             }
         });
+        
+        // 显示登录页面
+        window.showLoginPage = function() {
+            const loginPage = document.getElementById('loginPage');
+            const mainApp = document.getElementById('mainApp');
+            
+            console.log('showLoginPage called');
+            console.log('loginPage element:', loginPage);
+            console.log('mainApp element:', mainApp);
+            
+            if (loginPage) {
+                loginPage.style.position = 'fixed';
+                loginPage.style.top = '0';
+                loginPage.style.left = '0';
+                loginPage.style.width = '100vw';
+                loginPage.style.height = '100vh';
+                loginPage.style.display = 'flex';
+                loginPage.style.alignItems = 'center';
+                loginPage.style.justifyContent = 'center';
+                loginPage.style.zIndex = '9999';
+                console.log('Login page styles applied');
+            }
+            if (mainApp) {
+                mainApp.style.display = 'none';
+            }
+            
+            // 隐藏加载状态
+            const loadingElement = document.getElementById('loadingState');
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+            
+            console.log('Login page should now be visible and centered');
+        };
+        
+        // 登录处理函数
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            if (!username || !password) {
+                alert('请输入用户名和密码');
+                return;
+            }
+            
+            // 显示加载状态
+            const loginBtn = document.getElementById('loginBtn');
+            const loginText = document.getElementById('loginText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            if (loginBtn) loginBtn.disabled = true;
+            if (loginText) loginText.style.display = 'none';
+            if (loginSpinner) loginSpinner.style.display = 'block';
+            
+            // 模拟登录延迟
+            setTimeout(() => {
+                console.log('登录成功:', username);
+                
+                // 存储登录信息
+                if (rememberMe) {
+                    localStorage.setItem('pms_username', username);
+                    localStorage.setItem('pms_remember', 'true');
+                } else {
+                    sessionStorage.setItem('pms_username', username);
+                }
+                
+                // 登录成功，显示主应用
+                loginSuccess();
+            }, 1000);
+        };
+        
+        // 登录成功处理
+        window.loginSuccess = async function() {
+            try {
+                // 重置登录按钮状态
+                const loginBtn = document.getElementById('loginBtn');
+                const loginText = document.getElementById('loginText');
+                const loginSpinner = document.getElementById('loginSpinner');
+                
+                if (loginBtn) loginBtn.disabled = false;
+                if (loginText) loginText.style.display = 'block';
+                if (loginSpinner) loginSpinner.style.display = 'none';
+                
+                // 清空登录表单
+                document.getElementById('loginForm').reset();
+                
+                // 隐藏登录页面
+                const loginPage = document.getElementById('loginPage');
+                if (loginPage) {
+                    loginPage.style.display = 'none !important';
+                    loginPage.style.visibility = 'hidden';
+                    loginPage.style.opacity = '0';
+                    loginPage.style.zIndex = '-1';
+                    console.log('登录页面已隐藏');
+                } else {
+                    console.error('找不到登录页面元素');
+                }
+                
+                // 显示主应用
+                const mainApp = document.getElementById('mainApp');
+                if (mainApp) {
+                    mainApp.style.display = 'flex';
+                    mainApp.style.visibility = 'visible';
+                    mainApp.style.opacity = '1';
+                    mainApp.style.zIndex = '1';
+                    console.log('主应用已显示');
+                } else {
+                    console.error('找不到主应用元素');
+                }
+                
+                // 加载默认页面（工时管理）
+                console.log('开始加载工时管理页面...');
+                await window.componentLoader.loadPage('timesheet', '#pageContainer', 'replace', () => {
+                    console.log('工时页面加载完成，开始初始化...');
+                    if (typeof initializeTimesheetPage === 'function') {
+                        initializeTimesheetPage();
+                    }
+                });
+                
+                // 延迟一点确保DOM更新完成
+                setTimeout(() => {
+                    console.log('已切换到主应用界面');
+                    
+                    // 强制重新检查页面可见性
+                    const finalCheck = document.getElementById('timesheetPage');
+                    if (finalCheck) {
+                        console.log('工时页面最终检查: 可见');
+                        finalCheck.style.display = 'block';
+                    } else {
+                        console.error('工时页面最终检查: 不存在');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('登录后初始化失败:', error);
+                alert('登录成功，但页面加载失败，请刷新页面');
+            }
+        };
+        
+        // 忘记密码处理
+        window.showForgotPassword = function() {
+            alert('请联系系统管理员重置密码\n邮箱: admin@company.com\n电话: 400-123-4567');
+        };
         
         // 确保全局函数可用
         window.showErrorState = function(message) {
@@ -133,8 +279,6 @@
         };
     </script>
     
-    <!-- SQLBot智能问数应用 -->
-    <script async defer id="sqlbot-assistant-float-script-7368214901820493824" src="http://10.10.201.67:8000/assistant.js?id=7368214901820493824"></script>
 </body>
 </html>
 

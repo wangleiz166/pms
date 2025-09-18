@@ -2,6 +2,11 @@
 const API_URL = 'http://127.0.0.1:5001/api';
 let selectedProjectData = null; // 用于存储选中的项目数据
 
+// 当前查看的年月（使用服务器当前时间）
+const now = new Date();
+let currentYear = now.getFullYear();
+let currentMonth = now.getMonth() + 1; // getMonth()返回0-11，需要+1
+
 // 加载员工列表（已移除员工选择，保留函数以防其他地方调用）
 async function loadEmployees() {
     try {
@@ -172,12 +177,123 @@ function calculateDays() {
 
 // 切换月份
 function changeMonth(direction) {
-    // 这里可以实现月份切换逻辑
-    showNotification(`切换到${direction > 0 ? '下' : '上'}个月`, 'info');
+    // 更新当前年月
+    if (direction > 0) {
+        // 下个月
+        if (currentMonth === 12) {
+            currentYear++;
+            currentMonth = 1;
+        } else {
+            currentMonth++;
+        }
+    } else {
+        // 上个月
+        if (currentMonth === 1) {
+            currentYear--;
+            currentMonth = 12;
+        } else {
+            currentMonth--;
+        }
+    }
     
-    // 重新加载统计数据（这里可以扩展为支持不同月份的统计）
-    if (typeof loadMonthlyStats === 'function') {
-        loadMonthlyStats();
+    console.log(`切换到 ${currentYear}年${currentMonth}月`);
+    
+    // 更新页面标题
+    updateCalendarTitle();
+    
+    // 重新加载数据
+    fetchAndDisplayReports(currentYear, currentMonth);
+    loadMonthlyStats(currentYear, currentMonth);
+    
+    showNotification(`切换到${currentYear}年${currentMonth}月`, 'info');
+}
+
+// 更新日历标题和日历内容
+function updateCalendarTitle() {
+    // 更新左侧月份选择器
+    const currentMonthEl = document.querySelector('.current-month');
+    if (currentMonthEl) {
+        currentMonthEl.textContent = `${currentYear}年${currentMonth}月`;
+    }
+    
+    // 更新右侧日历标题
+    const calendarTitleEl = document.querySelector('.calendar-title');
+    if (calendarTitleEl) {
+        calendarTitleEl.textContent = `${currentYear}年${currentMonth}月工时填报`;
+    }
+    
+    // 重新生成日历
+    generateCalendar(currentYear, currentMonth);
+}
+
+// 生成日历
+function generateCalendar(year, month) {
+    const calendarBody = document.querySelector('.calendar tbody');
+    if (!calendarBody) return;
+    
+    // 获取当月第一天和最后一天
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    // 获取当月第一天是星期几（0=周日，1=周一...）
+    const firstDayOfWeek = firstDay.getDay();
+    
+    // 清空现有内容
+    calendarBody.innerHTML = '';
+    
+    let date = 1;
+    let nextMonthDate = 1;
+    
+    // 生成6行日历（足够显示任何月份）
+    for (let week = 0; week < 6; week++) {
+        const row = document.createElement('tr');
+        
+        // 生成一周的7天
+        for (let day = 0; day < 7; day++) {
+            const cell = document.createElement('td');
+            
+            if (week === 0 && day < firstDayOfWeek) {
+                // 上个月的日期
+                const prevMonth = month === 1 ? 12 : month - 1;
+                const prevYear = month === 1 ? year - 1 : year;
+                const prevMonthLastDay = new Date(prevYear, prevMonth, 0).getDate();
+                const prevDate = prevMonthLastDay - (firstDayOfWeek - day - 1);
+                
+                cell.className = 'other-month';
+                cell.innerHTML = `
+                    <div class="calendar-date">${prevDate}</div>
+                    <div class="calendar-status"></div>
+                `;
+            } else if (date > daysInMonth) {
+                // 下个月的日期
+                cell.className = 'other-month';
+                cell.innerHTML = `
+                    <div class="calendar-date">${nextMonthDate}</div>
+                    <div class="calendar-status"></div>
+                `;
+                nextMonthDate++;
+            } else {
+                // 当月的日期
+                const dateStr = `${year}-${month.toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
+                const isToday = new Date().toDateString() === new Date(year, month - 1, date).toDateString();
+                
+                cell.className = isToday ? 'today' : '';
+                cell.setAttribute('onclick', `openTimesheetModal('${dateStr}')`);
+                cell.innerHTML = `
+                    <div class="calendar-date">${date}</div>
+                    <div class="calendar-status"></div>
+                `;
+                date++;
+            }
+            
+            row.appendChild(cell);
+        }
+        
+        calendarBody.appendChild(row);
+        
+        // 如果已经显示完所有日期，停止生成
+        if (date > daysInMonth && week >= 4) break;
     }
 }
 
@@ -249,10 +365,10 @@ async function submitTimesheet(event) {
 }
 
 // 获取并显示报工数据
-async function fetchAndDisplayReports() {
+async function fetchAndDisplayReports(year = currentYear, month = currentMonth) {
     try {
-        console.log('开始获取报工数据...');
-        const response = await fetch(`${API_URL}/reports`);
+        console.log(`开始获取报工数据... 年月: ${year}-${month}`);
+        const response = await fetch(`${API_URL}/reports?year=${year}&month=${month}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -267,16 +383,14 @@ async function fetchAndDisplayReports() {
 }
 
 // 加载月度统计数据
-async function loadMonthlyStats() {
+async function loadMonthlyStats(year = currentYear, month = currentMonth) {
     try {
-        // 默认使用2025年8月的数据
-        const year = 2025;
-        const month = 8;
+        // 使用当前选择的年月
         
         console.log(`正在加载 ${year}年${month}月 的统计数据...`);
         console.log(`API URL: ${API_URL}/stats/${year}/${month}`);
         
-        const response = await fetch(`${API_URL}/stats/${year}/${month}`);
+        const response = await fetch(`${API_URL}/stats/${year}/${month}?employee_id=1`);
         console.log(`API响应状态: ${response.status}`);
         
         if (!response.ok) {
@@ -390,15 +504,16 @@ function updateCalendar(reports) {
                 // 为每个报工记录创建状态点
                 dateReports.forEach(report => {
                     const dot = document.createElement('span');
-                    // 根据status字段设置不同的样式
-                    if (report.status === 1) {
-                        dot.className = 'status-dot status-completed'; // 绿色点 - 已审核
-                    } else if (report.status === 2) {
-                        dot.className = 'status-dot status-rejected'; // 红色点 - 已驳回
-                    } else if (report.status === 4) {
-                        dot.className = 'status-dot status-leave'; // 蓝色点 - 请假
-                    } else {
+                    // 根据status字段设置不同的样式（1=已通过，2=待审核，3=已驳回，4=请假）
+                    const status = Number(report.status);
+                    if (status === 1) {
+                        dot.className = 'status-dot status-approved'; // 绿色点 - 已通过
+                    } else if (status === 2) {
                         dot.className = 'status-dot status-pending'; // 黄色点 - 待审核
+                    } else if (status === 3) {
+                        dot.className = 'status-dot status-rejected'; // 红色点 - 已驳回
+                    } else {
+                        dot.className = 'status-dot status-pending'; // 默认黄色点 - 待审核
                     }
                     statusContainer.appendChild(dot);
                 });
@@ -474,8 +589,11 @@ async function openTimesheetDetailModal(date) {
                 try { console.log('Timesheet detail status:', report.status, typeof report.status, report); } catch(e) {}
                 const days = (report.hours_spent / 8).toFixed(1);
                 // 统一状态渲染（兼容后端可能返回字符串/未设置4的情况）
-                let statusLabelText = getStatusText(report.status);
-                let statusLabelClass = getStatusClass(report.status);
+                console.log('About to call getStatusText with:', report.status);
+                console.log('getStatusText function:', getStatusText);
+                let statusLabelText = getTimesheetStatusText(report.status);
+                let statusLabelClass = getTimesheetStatusClass(report.status);
+                console.log('Got statusLabelText:', statusLabelText, 'statusLabelClass:', statusLabelClass);
                 if (Number(report.status) !== 4 && typeof report.task_description === 'string' && report.task_description.trim() === '请假') {
                     statusLabelText = '请假';
                     statusLabelClass = 'status-leave';
@@ -511,6 +629,11 @@ async function openTimesheetDetailModal(date) {
                             <span class="status-label ${statusLabelClass}">${statusLabelText}</span>
                         </div>
                     </div>
+                    ${Number(report.status) === 0 ? `
+                    <div class="report-actions">
+                        <button class="btn btn-danger btn-small" onclick="withdrawTimesheet(${report.id})">撤销</button>
+                    </div>
+                    ` : ''}
                 `;
                 // 再次强制规范状态元素，避免历史类名残留（如 pending/approved）
                 const statusEl = reportCard.querySelector('.status-label');
@@ -541,8 +664,85 @@ function closeTimesheetDetailModal() {
     }
 }
 
+// 从工时详情模态框打开新增工时模态框
+function openTimesheetModalFromDetail() {
+    // 获取当前查看的日期
+    const detailDate = document.getElementById('detailDate');
+    const currentDate = detailDate ? detailDate.textContent : '';
+    
+    // 关闭详情模态框
+    closeTimesheetDetailModal();
+    
+    // 延迟一点时间再打开新增工时模态框，确保关闭动画完成
+    setTimeout(() => {
+        // 如果有日期信息，将其转换为标准格式并传递给新增工时模态框
+        if (currentDate && currentDate !== '--') {
+            try {
+                // 将中文日期格式转换为标准日期格式
+                const dateMatch = currentDate.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+                if (dateMatch) {
+                    const [, year, month, day] = dateMatch;
+                    const standardDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                    openTimesheetModal(standardDate);
+                } else {
+                    openTimesheetModal();
+                }
+            } catch (error) {
+                console.error('日期格式转换失败:', error);
+                openTimesheetModal();
+            }
+        } else {
+            openTimesheetModal();
+        }
+    }, 300);
+}
+
+// 撤销工时记录
+async function withdrawTimesheet(reportId) {
+    if (!confirm('确定要撤销这条工时记录吗？撤销后将无法恢复。')) {
+        return;
+    }
+    
+    try {
+        console.log('撤销工时记录:', reportId);
+        
+        const response = await fetch(`${API_URL}/reports/${reportId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('撤销成功:', result);
+        
+        showNotification('工时记录已撤销', 'success');
+        
+        // 关闭详情模态框
+        closeTimesheetDetailModal();
+        
+        // 刷新页面数据
+        if (typeof fetchAndDisplayReports === 'function') {
+            fetchAndDisplayReports();
+        }
+        if (typeof loadMonthlyStats === 'function') {
+            loadMonthlyStats();
+        }
+        
+    } catch (error) {
+        console.error('撤销工时记录失败:', error);
+        showNotification(`撤销失败: ${error.message}`, 'error');
+    }
+}
+
 // 状态辅助函数
-function getStatusText(status) {
+function getTimesheetStatusText(status) {
+    console.log('getTimesheetStatusText called with:', status, typeof status);
     // 兼容字符串状态
     if (typeof status === 'string') {
         const key = status.toLowerCase();
@@ -554,16 +754,22 @@ function getStatusText(status) {
         if (!Number.isNaN(maybeNum)) status = maybeNum;
     }
     const s = Number(status);
+    console.log('getTimesheetStatusText converted to number:', s);
+    let result;
     switch (s) {
-        case 0: return '待审核';
-        case 1: return '已通过';
-        case 2: return '已驳回';
-        case 4: return '请假';
-        default: return '未知状态';
+        case 1: result = '已通过'; break;
+        case 2: result = '待审核'; break;
+        case 0: result = '待审核'; break;
+        case 4: result = '请假'; break;
+        case 3: result = '已驳回'; break;
+        default: result = '待审核'; break;
     }
+    console.log('getTimesheetStatusText result:', result);
+    return result;
 }
 
-function getStatusClass(status) {
+function getTimesheetStatusClass(status) {
+    console.log('getTimesheetStatusClass called with:', status, typeof status);
     // 兼容字符串状态
     if (typeof status === 'string') {
         const key = status.toLowerCase();
@@ -575,13 +781,18 @@ function getStatusClass(status) {
         if (!Number.isNaN(maybeNum)) status = maybeNum;
     }
     const s = Number(status);
+    console.log('getTimesheetStatusClass converted to number:', s);
+    let result;
     switch (s) {
-        case 0: return 'status-pending';
-        case 1: return 'status-approved';
-        case 2: return 'status-rejected';
-        case 4: return 'status-leave';
-        default: return 'unknown';
+        case 1: result = 'status-approved'; break;
+        case 2: result = 'status-pending'; break;
+        case 0: result = 'status-pending'; break;
+        case 4: result = 'status-leave'; break;
+        case 3: result = 'status-rejected'; break;
+        default: result = 'status-pending'; break;
     }
+    console.log('getTimesheetStatusClass result:', result);
+    return result;
 }
 
 // 将函数暴露到全局作用域
@@ -589,10 +800,13 @@ window.openTimesheetModal = openTimesheetModal;
 window.closeTimesheetModal = closeTimesheetModal;
 window.openTimesheetDetailModal = openTimesheetDetailModal;
 window.closeTimesheetDetailModal = closeTimesheetDetailModal;
+window.openTimesheetModalFromDetail = openTimesheetModalFromDetail;
+window.withdrawTimesheet = withdrawTimesheet;
 window.selectProject = selectProject;
 window.filterProjects = filterProjects;
 window.calculateDays = calculateDays;
 window.changeMonth = changeMonth;
+window.updateCalendarTitle = updateCalendarTitle;
 window.syncHolidays = syncHolidays;
 window.submitTimesheet = submitTimesheet;
 window.loadMonthlyStats = loadMonthlyStats;
@@ -604,11 +818,17 @@ window.fetchAndDisplayReports = fetchAndDisplayReports;
  */
 function initializeTimesheetPage() {
     console.log('Initializing Timesheet Page...');
+    console.log(`当前服务器时间: ${currentYear}年${currentMonth}月`);
+    
+    // 初始化页面标题
+    updateCalendarTitle();
+    
+    // 加载当前月份的数据
     if (typeof fetchAndDisplayReports === 'function') {
-        fetchAndDisplayReports();
+        fetchAndDisplayReports(currentYear, currentMonth);
     }
     if (typeof loadMonthlyStats === 'function') {
-        loadMonthlyStats();
+        loadMonthlyStats(currentYear, currentMonth);
     }
 }
 

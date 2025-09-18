@@ -1,41 +1,52 @@
 <!-- 登录页面 -->
-<div id="loginPage" class="login-container" style="display: none;">
+<div id="loginPage" class="login-container">
     <div class="login-box">
         <div class="login-header">
+            <div class="login-logo">
+                <img src="https://pmls.pintechs.com/png/logo.9a9911f1.png" alt="PMS Logo" class="login-logo-img">
+            </div>
             <h1 class="login-title">项目管理系统</h1>
+            <p class="login-subtitle">PMS - Project Management System</p>
         </div>
         
         <div class="login-content">
-            <div class="company-logo">
-                <div class="company-name">
-                    <div class="company-logo-icon">品</div>
-                    品见智能
-                </div>
-                <div class="company-subtitle">PINTECHS</div>
-            </div>
-            
-            <form id="loginForm">
+            <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="login-form-group">
-                    <input type="text" class="login-input" id="username" placeholder="wanglei" required>
+                    <label class="login-label">邮箱/用户名</label>
+                    <input type="text" class="login-input" id="loginUsername" placeholder="请输入邮箱或用户名" required>
                 </div>
                 
                 <div class="login-form-group">
-                    <input type="password" class="login-input" id="password" placeholder="••••••••••••" required>
+                    <label class="login-label">密码</label>
+                    <input type="password" class="login-input" id="loginPassword" placeholder="请输入密码" required>
                 </div>
                 
-                <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                <div class="login-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        记住我
+                    </label>
+                    <a href="#" class="forgot-link" onclick="showForgotPassword()">忘记密码？</a>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
                     <span id="loginText">登录</span>
+                    <div class="loading-spinner" id="loginSpinner" style="display: none;"></div>
                 </button>
-                
-                <div class="other-login">
-                    其他登录：<a href="#" style="color: #4A90E2;">🔍</a>
-                </div>
-                
-                <div class="forgot-password">
-                    如忘记密码，请联系管理员重置密码
-                </div>
             </form>
+            
+            <div class="login-footer">
+                <p>© 2025 项目管理系统 - 专业的项目管理解决方案</p>
+            </div>
         </div>
+    </div>
+    
+    <!-- 背景装饰 -->
+    <div class="login-bg-decoration">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
     </div>
 </div>
 

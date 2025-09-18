@@ -1,8 +1,46 @@
 /* 工时填报页面样式 */
+#timesheetPage {
+    height: calc(100vh - 40px);
+    min-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* 响应式高度调整 */
+@media screen and (max-height: 800px) {
+    #timesheetPage {
+        height: calc(100vh - 20px);
+        min-height: calc(100vh - 20px);
+        padding: 10px;
+    }
+}
+
+@media screen and (min-height: 1200px) {
+    #timesheetPage {
+        height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        padding: 30px;
+    }
+}
+
+@media screen and (min-height: 1440px) {
+    #timesheetPage {
+        height: calc(100vh - 80px);
+        min-height: calc(100vh - 80px);
+        padding: 40px;
+    }
+}
+
 .timesheet-layout {
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 20px;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
 }
 
 .stats-sidebar {
@@ -10,7 +48,9 @@
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .stats-sidebar h3 {
@@ -59,6 +99,8 @@
 .stats-grid {
     display: grid;
     gap: 16px;
+    flex: 1;
+    grid-template-rows: repeat(4, 1fr);
 }
 
 .stats-card {
@@ -115,6 +157,9 @@
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .calendar-header {
@@ -138,17 +183,20 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    flex: 1;
+    height: 100%;
 }
 
 .calendar th,
 .calendar td {
     width: 14.28%;
-    height: 88px;
+    height: 16.67%; /* 6行，每行占1/6的高度 */
     text-align: center;
     vertical-align: top;
     border: 1px solid #f0f0f0;
     position: relative;
     padding: 10px;
+    min-height: 80px;
 }
 
 .calendar th {
@@ -197,6 +245,10 @@
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
 
+.status-approved {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
 .status-partial {
     background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
 }
@@ -212,6 +264,34 @@
 /* 请假（蓝色） */
 .status-leave {
     background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+}
+
+/* 报工记录操作区域 */
+.report-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+    text-align: right;
+}
+
+.report-actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    min-width: 60px;
+}
+
+.report-actions .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.report-actions .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
 }
 
 /* 状态标签样式 */

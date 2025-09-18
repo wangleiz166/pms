@@ -288,12 +288,8 @@ async function initializeApp() {
             { path: COMMON_COMPONENTS['timesheet-detail-modal'], target: '#modalContainer', mode: 'append' }
         ]);
 
-        // 加载默认页面（工时管理）并执行初始化回调
-        await window.componentLoader.loadPage('timesheet', '#pageContainer', 'replace', () => {
-            if (typeof initializeTimesheetPage === 'function') {
-                initializeTimesheetPage();
-            }
-        });
+        // 加载登录页面到body中，而不是pageContainer
+        await window.componentLoader.loadPage('login', 'body', 'append');
 
         // 隐藏加载状态
         hideLoadingState();

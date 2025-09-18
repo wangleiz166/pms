@@ -724,7 +724,7 @@ function updateTimesheetApprovalTable(data) {
     tbody.innerHTML = '';
     
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">暂无待审核的报工记录</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">暂无待审核的报工记录</td></tr>';
         return;
     }
     
@@ -736,7 +736,6 @@ function updateTimesheetApprovalTable(data) {
             <td>${item.report_date}</td>
             <td>${item.hours_spent}</td>
             <td>${item.task_description}</td>
-            <td><span class="status-badge status-pending">待审核</span></td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit-btn" onclick="approveTimesheet('${item.id}')">通过</button>
@@ -1191,22 +1190,36 @@ function updateChartPlaceholders(hoursTrend, projectProgress, teamEfficiency, fi
 
 // 获取状态样式类
 function getStatusClass(status) {
-    switch(status) {
-        case 0: return 'pending';
-        case 1: return 'approved';
-        case 2: return 'rejected';
-        default: return 'pending';
+    console.log('main.js getStatusClass called with:', status, typeof status);
+    const s = Number(status);
+    let result;
+    switch(s) {
+        case 1: result = 'approved'; break;
+        case 2: result = 'pending'; break;
+        case 0: result = 'pending'; break;
+        case 4: result = 'leave'; break;
+        case 3: result = 'rejected'; break;
+        default: result = 'pending'; break;
     }
+    console.log('main.js getStatusClass result:', result);
+    return result;
 }
 
 // 获取状态文本
 function getStatusText(status) {
-    switch(status) {
-        case 0: return '待审核';
-        case 1: return '已通过';
-        case 2: return '已驳回';
-        default: return '待审核';
+    console.log('main.js getStatusText called with:', status, typeof status);
+    const s = Number(status);
+    let result;
+    switch(s) {
+        case 1: result = '已通过'; break;
+        case 2: result = '待审核'; break;
+        case 0: result = '待审核'; break;
+        case 4: result = '请假'; break;
+        case 3: result = '已驳回'; break;
+        default: result = '待审核'; break;
     }
+    console.log('main.js getStatusText result:', result);
+    return result;
 }
 
 // 格式化日期时间
