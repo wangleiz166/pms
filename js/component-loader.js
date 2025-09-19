@@ -288,8 +288,8 @@ async function initializeApp() {
             { path: COMMON_COMPONENTS['timesheet-detail-modal'], target: '#modalContainer', mode: 'append' }
         ]);
 
-        // 加载登录页面到body中，而不是pageContainer
-        await window.componentLoader.loadPage('login', 'body', 'append');
+        // 不在这里加载登录页面，由主逻辑决定加载什么
+        console.log('组件加载器初始化完成，等待主逻辑决定加载内容');
 
         // 隐藏加载状态
         hideLoadingState();

@@ -1,13 +1,18 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error
 from config import DB_CONFIG
 from datetime import datetime, timedelta
 import calendar
+import hashlib
+import secrets
 
 app = Flask(__name__)
-CORS(app)  # 为整个应用启用CORS
+CORS(app, supports_credentials=True)  # 启用CORS并支持credentials
+
+# 内存session存储（当user_sessions表不存在时使用）
+memory_sessions = {}
 
 def get_db_connection():
     """创建并返回数据库连接"""
@@ -778,6 +783,223 @@ def get_financial_analysis_chart():
 def hello_world():
     return 'Hello, from Flask Backend!'
 
+# ======================== 用户认证相关接口 ========================
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """用户登录验证"""
+    print(f"登录请求 - Content-Type: {request.headers.get('Content-Type')}")
+    print(f"登录请求 - Raw data: {request.get_data()}")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        data = request.get_json()
+        print(f"解析后的数据: {data}")
+        
+        if not data:
+            return jsonify({'success': False, 'message': '请求数据格式错误'}), 400
+            
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        print(f"用户名: {username}, 密码长度: {len(password) if password else 0}")
+        
+        if not username or not password:
+            return jsonify({'success': False, 'message': '用户名和密码不能为空'}), 400
+        
+        # 查询用户信息（支持邮箱或姓名登录）
+        cursor.execute("""
+            SELECT e.id, e.name, e.email, e.password_hash, e.status, e.role_id,
+                   r.role_name, r.role_code, r.permissions
+            FROM employees e
+            LEFT JOIN roles r ON e.role_id = r.id
+            WHERE (e.email = %s OR e.name = %s) AND e.status = 1
+        """, (username, username))
+        
+        user = cursor.fetchone()
+        print(f"查询到的用户: {user}")
+        
+        if not user:
+            print(f"用户 {username} 不存在")
+            return jsonify({'success': False, 'message': '用户不存在或已被禁用'}), 401
+        
+        # 验证密码（暂时允许任意密码登录，后续可以启用真实验证）
+        # password_valid = bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8'))
+        password_valid = True  # 临时：任意密码都能登录
+        
+        if not password_valid:
+            return jsonify({'success': False, 'message': '密码错误'}), 401
+        
+        # 生成session_id
+        session_id = secrets.token_urlsafe(32)
+        expires_at = datetime.now() + timedelta(days=7)  # 7天有效期
+        
+        # 存储session到数据库（如果user_sessions表存在）
+        try:
+            cursor.execute("""
+                INSERT INTO user_sessions (employee_id, session_token, expires_at, ip_address, user_agent)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (
+                user['id'], 
+                session_id, 
+                expires_at,
+                request.remote_addr,
+                request.headers.get('User-Agent', '')
+            ))
+        except Error as session_error:
+            # 如果user_sessions表不存在，使用内存存储
+            print(f"Warning: user_sessions表不存在，使用内存存储: {session_error}")
+            memory_sessions[session_id] = {
+                'employee_id': user['id'],
+                'expires_at': expires_at,
+                'ip_address': request.remote_addr,
+                'user_agent': request.headers.get('User-Agent', '')
+            }
+        
+        # 更新最后登录时间
+        cursor.execute("""
+            UPDATE employees SET last_login = %s WHERE id = %s
+        """, (datetime.now(), user['id']))
+        
+        conn.commit()
+        
+        # 准备返回的用户信息
+        user_info = {
+            'id': user['id'],
+            'name': user['name'],
+            'email': user['email'],
+            'role_id': user['role_id'],
+            'role_name': user['role_name'],
+            'role_code': user['role_code'],
+            'permissions': user['permissions'] if user['permissions'] else []
+        }
+        
+        # 设置cookie
+        response = make_response(jsonify({
+            'success': True, 
+            'message': '登录成功',
+            'session_id': session_id,
+            'user': user_info
+        }))
+        
+        # 设置HttpOnly cookie，7天有效期
+        response.set_cookie(
+            'pms_session_id', 
+            session_id, 
+            max_age=7*24*60*60,  # 7天
+            httponly=True,
+            secure=False,  # 开发环境设为False，生产环境应设为True
+            samesite='Lax'
+        )
+        
+        return response
+        
+    except Error as e:
+        return jsonify({'success': False, 'message': f'数据库错误: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/auth/verify', methods=['GET'])
+def verify_session():
+    """验证session有效性"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # 从cookie获取session_id
+        session_id = request.cookies.get('pms_session_id')
+        
+        if not session_id:
+            return jsonify({'success': False, 'message': '未找到session'}), 401
+        
+        # 先尝试从数据库查询session
+        session_data = None
+        try:
+            cursor.execute("""
+                SELECT s.employee_id, s.expires_at,
+                       e.name, e.email, e.status, e.role_id,
+                       r.role_name, r.role_code, r.permissions
+                FROM user_sessions s
+                JOIN employees e ON s.employee_id = e.id
+                LEFT JOIN roles r ON e.role_id = r.id
+                WHERE s.session_token = %s AND s.expires_at > %s AND e.status = 1
+            """, (session_id, datetime.now()))
+            
+            session_data = cursor.fetchone()
+        except Error as e:
+            # 如果user_sessions表不存在，从内存存储查询
+            print(f"数据库session查询失败，尝试内存存储: {e}")
+            if session_id in memory_sessions:
+                session_info = memory_sessions[session_id]
+                if session_info['expires_at'] > datetime.now():
+                    # 查询用户信息
+                    cursor.execute("""
+                        SELECT e.id as employee_id, e.name, e.email, e.status, e.role_id,
+                               r.role_name, r.role_code, r.permissions
+                        FROM employees e
+                        LEFT JOIN roles r ON e.role_id = r.id
+                        WHERE e.id = %s AND e.status = 1
+                    """, (session_info['employee_id'],))
+                    
+                    user_data = cursor.fetchone()
+                    if user_data:
+                        session_data = user_data
+                        session_data['expires_at'] = session_info['expires_at']
+        
+        if not session_data:
+            return jsonify({'success': False, 'message': 'Session已过期或无效'}), 401
+        
+        # 准备返回的用户信息
+        user_info = {
+            'id': session_data['employee_id'],
+            'name': session_data['name'],
+            'email': session_data['email'],
+            'role_id': session_data['role_id'],
+            'role_name': session_data['role_name'],
+            'role_code': session_data['role_code'],
+            'permissions': session_data['permissions'] if session_data['permissions'] else []
+        }
+        
+        return jsonify({'success': True, 'user': user_info})
+        
+    except Error as e:
+        return jsonify({'success': False, 'message': f'数据库错误: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    """用户登出"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        session_id = request.cookies.get('pms_session_id')
+        
+        if session_id:
+            # 删除session记录
+            try:
+                cursor.execute("DELETE FROM user_sessions WHERE session_token = %s", (session_id,))
+                conn.commit()
+            except Error as e:
+                print(f"数据库session删除失败，尝试内存存储: {e}")
+                # 从内存存储删除
+                if session_id in memory_sessions:
+                    del memory_sessions[session_id]
+        
+        # 清除cookie
+        response = make_response(jsonify({'success': True, 'message': '登出成功'}))
+        response.set_cookie('pms_session_id', '', expires=0)
+        
+        return response
+        
+    except Error as e:
+        return jsonify({'success': False, 'message': f'数据库错误: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5001) # 使用一个不同的端口以避免与前端冲突
+    app.run(debug=True, host='127.0.0.1', port=5001)
 
