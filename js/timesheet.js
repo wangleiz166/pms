@@ -1,5 +1,19 @@
-// API基地址
-const API_URL = 'http://127.0.0.1:5001/api';
+// API基地址 - 自动检测当前服务器IP
+const API_URL = (() => {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // 判断是否为域名（包含点号且不是IP地址）
+    const isDomain = hostname.includes('.') && !/^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+    
+    if (isDomain) {
+        // 域名时不添加端口号
+        return `${protocol}//${hostname}/api`;
+    } else {
+        // IP地址或localhost时添加端口号
+        return `${protocol}//${hostname}:5001/api`;
+    }
+})();
 let selectedProjectData = null; // 用于存储选中的项目数据
 
 // 当前查看的年月（使用服务器当前时间）
@@ -12,7 +26,6 @@ async function loadEmployees() {
     try {
         const response = await fetch(`${API_URL}/employees`);
         const employees = await response.json();
-        console.log('员工数据加载成功:', employees);
         // 不再需要更新DOM，因为员工选择已被移除
     } catch (error) {
         console.error('Failed to load employees:', error);
@@ -23,18 +36,22 @@ async function loadEmployees() {
 // 加载项目列表
 async function loadProjects() {
     try {
-        console.log('开始加载项目列表...');
-        console.log(`API URL: ${API_URL}/projects`);
         
-        const response = await fetch(`${API_URL}/projects`);
+        const response = await fetch(`${API_URL}/projects`, {
+            credentials: 'include'  // 添加认证凭证
+        });
         console.log('项目API响应状态:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const projects = await response.json();
-        console.log('获取到的项目数据:', projects);
+        const data = await response.json();
+        console.log('获取到的项目数据:', data);
+        
+        // 适配不同的返回格式
+        const projects = data.projects || data.items || (Array.isArray(data) ? data : []);
+        console.log('解析后的项目列表:', projects);
         
         const projectList = document.getElementById('projectList');
         console.log('项目列表容器:', projectList);
@@ -138,14 +155,17 @@ function selectProject(id, name, code) {
     showNotification(`已选择项目：${name}`, 'success');
 }
 
-// 过滤项目列表
-function filterProjects() {
+// 过滤项目列表（工时填报专用）
+function filterTimesheetProjects() {
     const searchInput = document.getElementById('projectSearch');
     if (!searchInput) return;
     
     const searchTerm = searchInput.value.toLowerCase();
     const projectItems = document.querySelectorAll('.project-item');
     
+    console.log(`[Timesheet] 搜索项目，关键词: "${searchTerm}", 总项目数: ${projectItems.length}`);
+    
+    let visibleCount = 0;
     projectItems.forEach(item => {
         const codeElement = item.querySelector('.project-code');
         const nameElement = item.querySelector('.project-name');
@@ -157,10 +177,13 @@ function filterProjects() {
         
         if (code.includes(searchTerm) || name.includes(searchTerm)) {
             item.style.display = 'block';
+            visibleCount++;
         } else {
             item.style.display = 'none';
         }
     });
+    
+    console.log(`[Timesheet] 搜索完成，显示 ${visibleCount} 个项目`);
 }
 
 // 计算人天
@@ -329,7 +352,6 @@ async function submitTimesheet(event) {
 
     const report = {
         report_date: document.getElementById('workDate').value,
-        employee_id: 1, // 默认使用1号员工
         project_id: selectedProjectData ? selectedProjectData.id : null,
         task_description: document.getElementById('workContent').value,
         hours_spent: document.getElementById('workHours').value
@@ -346,6 +368,7 @@ async function submitTimesheet(event) {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify(report)
         });
 
@@ -368,7 +391,7 @@ async function submitTimesheet(event) {
 async function fetchAndDisplayReports(year = currentYear, month = currentMonth) {
     try {
         console.log(`开始获取报工数据... 年月: ${year}-${month}`);
-        const response = await fetch(`${API_URL}/reports?year=${year}&month=${month}`);
+        const response = await fetch(`${API_URL}/reports?year=${year}&month=${month}`, { credentials: 'include' });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -390,7 +413,7 @@ async function loadMonthlyStats(year = currentYear, month = currentMonth) {
         console.log(`正在加载 ${year}年${month}月 的统计数据...`);
         console.log(`API URL: ${API_URL}/stats/${year}/${month}`);
         
-        const response = await fetch(`${API_URL}/stats/${year}/${month}?employee_id=1`);
+        const response = await fetch(`${API_URL}/stats/${year}/${month}`, { credentials: 'include' });
         console.log(`API响应状态: ${response.status}`);
         
         if (!response.ok) {
@@ -501,8 +524,13 @@ function updateCalendar(reports) {
                     return reportDate === date;
                 });
                 
-                // 为每个报工记录创建状态点
+                // 为每个报工记录创建状态点和项目名称
                 dateReports.forEach(report => {
+                    // 创建报工记录项容器
+                    const reportItem = document.createElement('div');
+                    reportItem.className = 'report-item';
+                    
+                    // 创建状态点
                     const dot = document.createElement('span');
                     // 根据status字段设置不同的样式（1=已通过，2=待审核，3=已驳回，4=请假）
                     const status = Number(report.status);
@@ -515,7 +543,17 @@ function updateCalendar(reports) {
                     } else {
                         dot.className = 'status-dot status-pending'; // 默认黄色点 - 待审核
                     }
-                    statusContainer.appendChild(dot);
+                    reportItem.appendChild(dot);
+                    
+                    // 创建项目名称标签
+                    const projectLabel = document.createElement('span');
+                    projectLabel.className = 'project-label';
+                    projectLabel.textContent = report.project_name || report.project_code || '未知项目';
+                    projectLabel.title = `${report.project_name || report.project_code || '未知项目'} - ${report.hours_spent}小时`;
+                    reportItem.appendChild(projectLabel);
+                    
+                    // 将报工记录项添加到状态容器
+                    statusContainer.appendChild(reportItem);
                 });
             }
             // 修改点击事件为查看详情
@@ -565,7 +603,7 @@ async function openTimesheetDetailModal(date) {
     
     // 加载该日期的报工数据
     try {
-        const response = await fetch(`${API_URL}/reports/${date}`);
+        const response = await fetch(`${API_URL}/reports/${date}`, { credentials: 'include' });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -604,7 +642,7 @@ async function openTimesheetDetailModal(date) {
                     <div class="report-detail-header">
                         <div class="report-project-info">
                             <div class="report-project-code">${report.project_code}</div>
-                            <div class="report-project-name">${report.project_name}</div>
+                            <div class="report-project-name" title="${report.project_name}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">${report.project_name}</div>
                         </div>
                         <div class="report-hours-info">
                             <div class="report-hours">${report.hours_spent}小时</div>
@@ -613,7 +651,7 @@ async function openTimesheetDetailModal(date) {
                     </div>
                     <div class="report-content">
                         <div class="report-content-label">工作内容</div>
-                        <div class="report-content-text">${report.task_description}</div>
+                        <div class="report-content-text" style="word-break: break-all; overflow-wrap: break-word; max-height: 100px; overflow-y: auto;">${report.task_description}</div>
                     </div>
                     <div class="report-meta">
                         <div class="report-employee">
@@ -710,7 +748,8 @@ async function withdrawTimesheet(reportId) {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            credentials: 'include'
         });
         
         if (!response.ok) {
@@ -803,7 +842,7 @@ window.closeTimesheetDetailModal = closeTimesheetDetailModal;
 window.openTimesheetModalFromDetail = openTimesheetModalFromDetail;
 window.withdrawTimesheet = withdrawTimesheet;
 window.selectProject = selectProject;
-window.filterProjects = filterProjects;
+window.filterTimesheetProjects = filterTimesheetProjects;
 window.calculateDays = calculateDays;
 window.changeMonth = changeMonth;
 window.updateCalendarTitle = updateCalendarTitle;

@@ -288,6 +288,10 @@ async function initializeApp() {
             { path: COMMON_COMPONENTS['timesheet-detail-modal'], target: '#modalContainer', mode: 'append' }
         ]);
 
+        // 侧边栏加载完成，权限将在登录后由 showMainApp 函数中调用
+        // 这里不再自动调用权限，避免在未登录时调用
+        console.log('侧边栏已加载，等待登录后应用权限');
+
         // 不在这里加载登录页面，由主逻辑决定加载什么
         console.log('组件加载器初始化完成，等待主逻辑决定加载内容');
 

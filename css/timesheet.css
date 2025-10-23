@@ -177,6 +177,21 @@
     color: #333;
 }
 
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.holiday-sync-info {
+    font-size: 12px;
+    color: #666;
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
 .calendar {
     width: 100%;
     border-collapse: collapse;
@@ -229,9 +244,19 @@
 
 .calendar-status {
     display: flex;
-    gap: 4px;
+    flex-direction: column;
+    gap: 2px;
     justify-content: center;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    padding-left: 8px;
+}
+
+/* 每个报工记录项 */
+.report-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-start;
 }
 
 .status-dot {
@@ -264,6 +289,22 @@
 /* 请假（蓝色） */
 .status-leave {
     background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+}
+
+/* 项目名称标签 */
+.project-label {
+    font-size: 10px;
+    color: #666;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid #e0e0e0;
+    white-space: nowrap;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 /* 报工记录操作区域 */
@@ -418,8 +459,8 @@
 }
 
 .detail-date-info {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    color: #495057;
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 25px;
@@ -516,7 +557,6 @@
     background: #f8f9fa;
     padding: 12px;
     border-radius: 8px;
-    border-left: 4px solid #4A90E2;
     line-height: 1.5;
     color: #333;
 }

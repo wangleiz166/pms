@@ -2,60 +2,191 @@
 <nav class="sidebar-nav">
     <div class="sidebar-header">
         <div class="sidebar-logo">
-            <img src="https://pmls.pintechs.com/png/logo.9a9911f1.png" alt="PMS Logo" class="sidebar-logo-icon">
-            <span>项目管理</span>
+            <div class="sidebar-logo-icon">
+                <img src="https://www.pintechs.com/_nuxt/homeloading.CvCfoDAw.png" alt="Pintechs Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <span class="sidebar-title">领航员项目管理</span>
         </div>
     </div>
     
     <div class="sidebar-menu">
-        <a href="#" class="sidebar-menu-item nav-item active" onclick="switchPage('timesheet')">
-            <span class="sidebar-menu-icon">⏰</span>
-            <span>工时管理</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('project-management')">
-            <span class="sidebar-menu-icon">📋</span>
-            <span>项目管理</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('staff-management')">
-            <span class="sidebar-menu-icon">👤</span>
-            <span>人员管理</span>
-        </a>
-        
-        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('team-management')">
-            <span class="sidebar-menu-icon">👥</span>
-            <span>团队管理</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('budget-management')">
-            <span class="sidebar-menu-icon">$</span>
-            <span>预算管理</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('approval-center')">
-            <span class="sidebar-menu-icon">✓</span>
-            <span>审核中心</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="openReportManagement()">
-            <span class="sidebar-menu-icon">📊</span>
-            <span>报表管理</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="openProjectDashboard()">
-            <span class="sidebar-menu-icon">📋</span>
-            <span>项目看板</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="openAIAssistant()">
-            <span class="sidebar-menu-icon">?</span>
-            <span>智能问数</span>
-        </a>
-        <a href="#" class="sidebar-menu-item nav-item" onclick="switchPage('system-management')">
-            <span class="sidebar-menu-icon">⚙</span>
-            <span>系统管理</span>
-        </a>
+        <!-- 主导航 -->
+        <div class="menu-section" data-section="main-nav">
+            <div class="menu-section-title">主导航</div>
+            <a href="#timesheet" class="sidebar-menu-item nav-item active" data-perm="timesheet" onclick="switchPage('timesheet')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>工时管理</span>
+            </a>
+            <a href="#project-management" class="sidebar-menu-item nav-item" data-perm="project-management" onclick="switchPage('project-management')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>项目管理</span>
+            </a>
+            <a href="#staff-management" class="sidebar-menu-item nav-item" data-perm="staff-management" onclick="switchPage('staff-management')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>员工列表</span>
+            </a>
+            <a href="#approval-center" class="sidebar-menu-item nav-item" data-perm="approval-center" onclick="switchPage('approval-center')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>审核中心<span id="approvalCount" style="display:none; color: #e53935; margin-left: 4px;">(0)</span></span>
+            </a>
+        </div>
+
+        <!-- 数据分析 -->
+        <div class="menu-section" data-section="data-analysis">
+            <div class="menu-section-title">数据分析</div>
+            <a href="javascript:void(0)" class="sidebar-menu-item nav-item" data-perm="report-management" onclick="openReportManagement()">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3v18h18" stroke="currentColor" stroke-width="2"/>
+                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>报表管理</span>
+            </a>
+            <a href="javascript:void(0)" class="sidebar-menu-item nav-item" data-perm="project-dashboard" onclick="openProjectDashboard()">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="2"/>
+                        <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="2"/>
+                        <rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="2"/>
+                        <rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>项目看板</span>
+            </a>
+            <a href="javascript:void(0)" class="sidebar-menu-item nav-item" data-perm="knowledge-base" onclick="openKnowledgeBase()">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 7h8" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 11h8" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 15h5" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>知识库</span>
+            </a>
+        </div>
+
+        <!-- 系统设置 -->
+        <div class="menu-section" data-section="system-settings">
+            <div class="menu-section-title">系统设置</div>
+            <a href="#team-management" class="sidebar-menu-item nav-item" data-perm="team-management" onclick="switchPage('team-management')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>团队管理</span>
+            </a>
+            <a href="#budget-management" class="sidebar-menu-item nav-item" data-perm="budget-management" onclick="switchPage('budget-management')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="12" y1="1" x2="12" y2="23" stroke="currentColor" stroke-width="2"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>预算管理</span>
+            </a>
+            <a href="#system-management" class="sidebar-menu-item nav-item" data-perm="system-management" onclick="switchPage('system-management')">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>系统管理</span>
+            </a>
+        </div>
+
+        <!-- 智能助手 -->
+        <div class="menu-section" data-section="ai-assistant">
+            <div class="menu-section-title">智能助手</div>
+            <a href="javascript:void(0)" class="sidebar-menu-item nav-item" data-perm="ai-assistant" onclick="openAIAssistant()">
+                <div class="sidebar-menu-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M13 8H7m6 4H7" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span>智能问数</span>
+            </a>
+        </div>
     </div>
     
     <div class="sidebar-user">
         <div class="user-info">
-            <div class="user-avatar" onclick="logout()">王</div>
-            <div class="user-name" id="currentUser">王磊</div>
+            <div class="user-avatar" id="userAvatar"></div>
+            <div class="user-name" id="currentUser">加载中...</div>
         </div>
+        <button class="reset-password-btn" onclick="openResetPasswordModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            重置密码
+        </button>
+        <button class="logout-btn" onclick="logout()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" stroke-width="2"/>
+                <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2"/>
+                <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            退出登录
+        </button>
     </div>
 </nav>
+
+<!-- 重置密码弹窗 -->
+<div id="resetPasswordModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>重置密码</h3>
+            <button class="modal-close" onclick="closeResetPasswordModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="resetPasswordForm">
+                <div class="form-group">
+                    <label for="oldPassword">当前密码 <span style="color: red;">*</span></label>
+                    <input type="password" id="oldPassword" name="oldPassword" class="form-input" placeholder="请输入当前密码" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">新密码 <span style="color: red;">*</span></label>
+                    <input type="password" id="newPassword" name="newPassword" class="form-input" placeholder="请输入新密码" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认新密码 <span style="color: red;">*</span></label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="请再次输入新密码" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeResetPasswordModal()">取消</button>
+            <button class="btn btn-primary" onclick="resetPassword()">确认修改</button>
+        </div>
+    </div>
+</div>
 

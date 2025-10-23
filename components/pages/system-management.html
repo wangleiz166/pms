@@ -9,56 +9,66 @@
         <div class="tab-navigation">
             <button class="tab-btn active" onclick="switchSystemTab('users')">用户管理</button>
             <button class="tab-btn" onclick="switchSystemTab('roles')">角色权限</button>
-            <button class="tab-btn" onclick="switchSystemTab('data-permission')">数据权限</button>
-            <button class="tab-btn" onclick="switchSystemTab('scheduled-notification')">定时通知</button>
-            <button class="tab-btn" onclick="switchSystemTab('settings')">系统设置</button>
             <button class="tab-btn" onclick="switchSystemTab('logs')">操作日志</button>
         </div>
 
         <!-- 用户管理标签页 -->
         <div id="system-users" class="tab-content active">
-            <div class="tab-header">
-                <h3>用户管理</h3>
+            <div class="tab-header" style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
                 <button class="btn btn-primary" onclick="showUserForm()">
                     <span class="btn-icon">+</span>
                     新增用户
                 </button>
             </div>
             
+            <style>
+                #system-managementPage .data-table th,
+                #system-managementPage .data-table td {
+                    text-align: left !important;
+                }
+            </style>
             <div class="table-container">
-                <table class="data-table">
+                <table class="data-table" style="table-layout: fixed; width: 100%;">
+                    <colgroup>
+                        <col style="width: 12%;">  <!-- 用户名 -->
+                        <col style="width: 20%;">  <!-- 邮箱 -->
+                        <col style="width: 12%;">  <!-- 角色 -->
+                        <col style="width: 12%;">  <!-- 部门 -->
+                        <col style="width: 18%;">  <!-- 最后登录时间 -->
+                        <col style="width: 26%;">  <!-- 操作 -->
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>用户名</th>
                             <th>邮箱</th>
                             <th>角色</th>
-                            <th>状态</th>
-                            <th>最后登录</th>
+                            <th>部门</th>
+                            <th>最后登录时间</th>
                             <th>操作</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>admin</td>
-                            <td>admin@example.com</td>
-                            <td>系统管理员</td>
-                            <td><span class="status-badge status-active">活跃</span></td>
-                            <td>2025-01-15 10:30</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit-btn" onclick="editUser('admin')">编辑</button>
-                                    <button class="action-btn delete-btn" onclick="deleteUser('admin')">删除</button>
-                                </div>
-                            </td>
-                        </tr>
+                        <tr id="system-users-empty"><td colspan="6" style="text-align:center; color:#999; padding: 16px;">暂无用户</td></tr>
                     </tbody>
                 </table>
+                
+                <!-- 用户分页 -->
+                <div class="pagination-container" style="margin-top: 12px;">
+                    <div class="pagination-info">
+                        <span id="users-pagination-info">第 1 / 1 页，共 1 条</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="users-prev-btn" onclick="changeSystemUsersPage(-1)">上一页</button>
+                        <div class="pagination-pages" id="users-pagination-pages"></div>
+                        <button class="pagination-btn" id="users-next-btn" onclick="changeSystemUsersPage(1)">下一页</button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- 角色权限标签页 -->
         <div id="system-roles" class="tab-content">
-            <div class="tab-header">
+            <div class="tab-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                 <h3>角色权限</h3>
                 <button class="btn btn-primary" onclick="showRoleForm()">
                     <span class="btn-icon">+</span>
@@ -71,163 +81,35 @@
                     <thead>
                         <tr>
                             <th>角色名称</th>
+                            <th>角色代码</th>
                             <th>描述</th>
-                            <th>权限数量</th>
-                            <th>用户数量</th>
                             <th>操作</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>系统管理员</td>
-                            <td>拥有所有系统权限</td>
-                            <td>25</td>
-                            <td>1</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit-btn" onclick="editRole('admin')">编辑</button>
-                                    <button class="action-btn delete-btn" onclick="deleteRole('admin')">删除</button>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="system-roles-tbody">
+                        <tr id="system-roles-empty"><td colspan="4" style="text-align:center; color:#999; padding: 16px;">暂无角色</td></tr>
                     </tbody>
                 </table>
+                
+                <!-- 角色分页 -->
+                <div class="pagination-container" style="margin-top: 12px;">
+                    <div class="pagination-info">
+                        <span id="roles-pagination-info">第 1 / 1 页，共 1 条</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="roles-prev-btn" onclick="changeSystemRolesPage(-1)">上一页</button>
+                        <div class="pagination-pages" id="roles-pagination-pages"></div>
+                        <button class="pagination-btn" id="roles-next-btn" onclick="changeSystemRolesPage(1)">下一页</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 数据权限标签页 -->
-        <div id="system-data-permission" class="tab-content">
-            <div class="tab-header">
-                <h3>数据权限</h3>
-                <button class="btn btn-primary" onclick="showDataPermissionForm()">
-                    <span class="btn-icon">+</span>
-                    新增权限
-                </button>
-            </div>
-            
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>权限名称</th>
-                            <th>数据类型</th>
-                            <th>权限范围</th>
-                            <th>适用角色</th>
-                            <th>状态</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>项目数据查看</td>
-                            <td>项目信息</td>
-                            <td>部门内</td>
-                            <td>项目经理</td>
-                            <td><span class="status-badge status-active">启用</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit-btn" onclick="editDataPermission('project-view')">编辑</button>
-                                    <button class="action-btn delete-btn" onclick="deleteDataPermission('project-view')">删除</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 定时通知标签页 -->
-        <div id="system-scheduled-notification" class="tab-content">
-            <div class="tab-header">
-                <h3>定时通知</h3>
-                <button class="btn btn-primary" onclick="showNotificationForm()">
-                    <span class="btn-icon">+</span>
-                    新增通知
-                </button>
-            </div>
-            
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>通知名称</th>
-                            <th>通知类型</th>
-                            <th>发送时间</th>
-                            <th>接收对象</th>
-                            <th>状态</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>报工审核提醒</td>
-                            <td>审核提醒</td>
-                            <td>报工后3天</td>
-                            <td>审核人员</td>
-                            <td><span class="status-badge status-active">启用</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn edit-btn" onclick="editNotification('timesheet-review')">编辑</button>
-                                    <button class="action-btn delete-btn" onclick="deleteNotification('timesheet-review')">删除</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 系统设置标签页 -->
-        <div id="system-settings" class="tab-content">
-            <div class="tab-header">
-                <h3>系统设置</h3>
-            </div>
-            
-            <div class="settings-form">
-                <div class="form-group">
-                    <label for="systemName">系统名称</label>
-                    <input type="text" id="systemName" value="项目管理系统" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="systemVersion">系统版本</label>
-                    <input type="text" id="systemVersion" value="v1.0.0" class="form-input" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="timezone">时区设置</label>
-                    <select id="timezone" class="form-select">
-                        <option value="Asia/Shanghai" selected>Asia/Shanghai</option>
-                        <option value="UTC">UTC</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="language">语言设置</label>
-                    <select id="language" class="form-select">
-                        <option value="zh-CN" selected>简体中文</option>
-                        <option value="en-US">English</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveSystemSettings()">保存设置</button>
-                    <button class="btn btn-secondary" onclick="resetSystemSettings()">重置</button>
-                </div>
-            </div>
-        </div>
 
         <!-- 操作日志标签页 -->
         <div id="system-logs" class="tab-content">
             <div class="tab-header">
                 <h3>操作日志</h3>
-                <div class="log-filters">
-                    <select class="filter-select">
-                        <option value="">全部级别</option>
-                        <option value="info">信息</option>
-                        <option value="warning">警告</option>
-                        <option value="error">错误</option>
-                    </select>
-                    <input type="date" class="filter-input" placeholder="开始日期">
-                    <input type="date" class="filter-input" placeholder="结束日期">
-                    <button class="btn btn-sm btn-primary" onclick="filterLogs()">筛选</button>
-                </div>
             </div>
             
             <div class="table-container">
@@ -237,31 +119,112 @@
                             <th>时间</th>
                             <th>用户</th>
                             <th>操作</th>
-                            <th>级别</th>
-                            <th>详情</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>2025-01-15 10:30:25</td>
-                            <td>admin</td>
-                            <td>登录系统</td>
-                            <td><span class="log-level info">信息</span></td>
-                            <td>用户成功登录</td>
-                        </tr>
+                    <tbody id="system-logs-tbody">
+                        <tr id="system-logs-empty"><td colspan="3" style="text-align:center; color:#999; padding: 16px;">暂无日志</td></tr>
                     </tbody>
                 </table>
+                
+                <!-- 日志分页 -->
+                <div class="pagination-container" style="margin-top: 12px;">
+                    <div class="pagination-info">
+                        <span id="logs-pagination-info">第 1 / 1 页，共 1 条</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="logs-prev-btn" onclick="changeSystemLogsPage(-1)">上一页</button>
+                        <div class="pagination-pages" id="logs-pagination-pages"></div>
+                        <button class="pagination-btn" id="logs-next-btn" onclick="changeSystemLogsPage(1)">下一页</button>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 角色编辑模态框 -->
+<div id="roleModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 id="roleModalTitle">新增角色</h3>
+            <span class="close" id="btn-role-modal-x" onclick="closeRoleModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="roleForm">
+                <div class="form-group">
+                    <label for="roleName">角色名称 <span style="color: red;">*</span></label>
+                    <input type="text" id="roleName" name="roleName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="roleCode">角色代码 <span style="color: red;">*</span></label>
+                    <input type="text" id="roleCode" name="roleCode" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="roleDescription">角色描述</label>
+                    <textarea id="roleDescription" name="roleDescription" class="form-input" rows="3"></textarea>
+                </div>
+                
+                <!-- 权限配置区域 -->
+                <div class="form-group">
+                    <label>导航权限配置</label>
+                    <div class="permissions-container" style="border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: #f9f9f9;">
+                        <div id="permissionsGrid" class="permissions-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <!-- 工时管理权限已移除，后端强制为true -->
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-project-management" name="permissions" value="project-management">
+                                <span>📋 项目管理</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-staff-management" name="permissions" value="staff-management">
+                                <span>👤 员工列表</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-approval-center" name="permissions" value="approval-center">
+                                <span>✓ 审核中心</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-report-management" name="permissions" value="report-management">
+                                <span>📊 报表管理</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-project-dashboard" name="permissions" value="project-dashboard">
+                                <span>📈 项目看板</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-ai-assistant" name="permissions" value="ai-assistant">
+                                <span>? 智能问数</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-knowledge-base" name="permissions" value="knowledge-base">
+                                <span>📚 知识库</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-team-management" name="permissions" value="team-management">
+                                <span>👥 团队管理</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-budget-management" name="permissions" value="budget-management">
+                                <span>$ 预算管理</span>
+                            </label>
+                            <label class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <input type="checkbox" id="perm-system-management" name="permissions" value="system-management">
+                                <span>⚙ 系统管理</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="btn-role-cancel" onclick="closeRoleModal()">取消</button>
+            <button class="btn btn-primary" id="btn-role-save" onclick="saveRole()">保存</button>
         </div>
     </div>
 </div>
 
 <script>
 // 系统管理相关函数
-function showUserForm() {
-    console.log('显示用户表单');
-    showNotification('用户表单功能开发中', 'info');
-}
+// showUserForm 函数已移至 main.js 中
 
 function editUser(userId) {
     console.log('编辑用户:', userId);
@@ -275,76 +238,151 @@ function deleteUser(userId) {
     }
 }
 
-function showRoleForm() {
-    console.log('显示角色表单');
-    showNotification('角色表单功能开发中', 'info');
-}
+// showRoleForm, editRole, deleteRole 函数已移至 main.js 中
 
-function editRole(roleId) {
-    console.log('编辑角色:', roleId);
-    showNotification(`编辑角色 ${roleId}`, 'info');
-}
+// 日志分页（演示用：仅UI与状态）
+let logsCurrentPage = 1;
+let logsTotalPages = 1;
 
-function deleteRole(roleId) {
-    if (confirm(`确定要删除角色 ${roleId} 吗？`)) {
-        console.log('删除角色:', roleId);
-        showNotification(`角色 ${roleId} 已删除`, 'success');
+function initLogsPagination(current, total, totalCount) {
+    logsCurrentPage = current;
+    logsTotalPages = Math.max(1, total);
+    const info = document.getElementById('logs-pagination-info');
+    const pagesEl = document.getElementById('logs-pagination-pages');
+    const prevBtn = document.getElementById('logs-prev-btn');
+    const nextBtn = document.getElementById('logs-next-btn');
+    if (info) info.textContent = `第 ${logsCurrentPage} / ${logsTotalPages} 页，共 ${totalCount} 条`;
+    if (pagesEl) {
+        pagesEl.innerHTML = '';
+        for (let i = 1; i <= logsTotalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `pagination-btn ${i === logsCurrentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => gotoLogsPage(i);
+            pagesEl.appendChild(btn);
+        }
     }
+    if (prevBtn) prevBtn.disabled = logsCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = logsCurrentPage >= logsTotalPages;
 }
 
-function saveSystemSettings() {
-    console.log('保存系统设置');
-    showNotification('系统设置已保存', 'success');
+function changeLogsPage(direction) {
+    const target = logsCurrentPage + direction;
+    gotoLogsPage(target);
 }
 
-function resetSystemSettings() {
-    console.log('重置系统设置');
-    showNotification('系统设置已重置', 'info');
+function gotoLogsPage(page) {
+    if (page < 1 || page > logsTotalPages) return;
+    logsCurrentPage = page;
+    // 这里可接入后端分页API获取数据
+    initLogsPagination(logsCurrentPage, logsTotalPages, 1);
 }
 
-function filterLogs() {
-    console.log('筛选日志');
-    showNotification('日志筛选功能开发中', 'info');
-}
+// 用户分页（演示用：仅UI与状态）
+let usersCurrentPage = 1;
+let usersTotalPages = 1;
 
-// 数据权限相关函数
-function showDataPermissionForm() {
-    console.log('显示数据权限表单');
-    showNotification('数据权限表单功能开发中', 'info');
-}
-
-function editDataPermission(permissionId) {
-    console.log('编辑数据权限:', permissionId);
-    showNotification(`编辑数据权限 ${permissionId}`, 'info');
-}
-
-function deleteDataPermission(permissionId) {
-    if (confirm(`确定要删除数据权限 ${permissionId} 吗？`)) {
-        console.log('删除数据权限:', permissionId);
-        showNotification(`数据权限 ${permissionId} 已删除`, 'success');
+function initUsersPagination(current, total, totalCount) {
+    usersCurrentPage = current;
+    usersTotalPages = Math.max(1, total);
+    const info = document.getElementById('users-pagination-info');
+    const pagesEl = document.getElementById('users-pagination-pages');
+    const prevBtn = document.getElementById('users-prev-btn');
+    const nextBtn = document.getElementById('users-next-btn');
+    if (info) info.textContent = `第 ${usersCurrentPage} / ${usersTotalPages} 页，共 ${totalCount} 条`;
+    if (pagesEl) {
+        pagesEl.innerHTML = '';
+        for (let i = 1; i <= usersTotalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `pagination-btn ${i === usersCurrentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => gotoUsersPage(i);
+            pagesEl.appendChild(btn);
+        }
     }
+    if (prevBtn) prevBtn.disabled = usersCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = usersCurrentPage >= usersTotalPages;
 }
 
-// 定时通知相关函数
-function showNotificationForm() {
-    console.log('显示定时通知表单');
-    showNotification('定时通知表单功能开发中', 'info');
+function changeUsersPage(direction) {
+    const target = usersCurrentPage + direction;
+    gotoUsersPage(target);
 }
 
-function editNotification(notificationId) {
-    console.log('编辑定时通知:', notificationId);
-    showNotification(`编辑定时通知 ${notificationId}`, 'info');
+function gotoUsersPage(page) {
+    if (page < 1 || page > usersTotalPages) return;
+    usersCurrentPage = page;
+    // 这里可接入后端分页API获取用户数据
+    initUsersPagination(usersCurrentPage, usersTotalPages, 1);
 }
 
-function deleteNotification(notificationId) {
-    if (confirm(`确定要删除定时通知 ${notificationId} 吗？`)) {
-        console.log('删除定时通知:', notificationId);
-        showNotification(`定时通知 ${notificationId} 已删除`, 'success');
+// 角色分页（演示用：仅UI与状态）
+let rolesCurrentPage = 1;
+let rolesTotalPages = 1;
+
+function initRolesPagination(current, total, totalCount) {
+    rolesCurrentPage = current;
+    rolesTotalPages = Math.max(1, total);
+    const info = document.getElementById('roles-pagination-info');
+    const pagesEl = document.getElementById('roles-pagination-pages');
+    const prevBtn = document.getElementById('roles-prev-btn');
+    const nextBtn = document.getElementById('roles-next-btn');
+    if (info) info.textContent = `第 ${rolesCurrentPage} / ${rolesTotalPages} 页，共 ${totalCount} 条`;
+    if (pagesEl) {
+        pagesEl.innerHTML = '';
+        for (let i = 1; i <= rolesTotalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `pagination-btn ${i === rolesCurrentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => gotoRolesPage(i);
+            pagesEl.appendChild(btn);
+        }
     }
+    if (prevBtn) prevBtn.disabled = rolesCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = rolesCurrentPage >= rolesTotalPages;
+}
+
+function changeRolesPage(direction) {
+    const target = rolesCurrentPage + direction;
+    gotoRolesPage(target);
+}
+
+function gotoRolesPage(page) {
+    if (page < 1 || page > rolesTotalPages) return;
+    rolesCurrentPage = page;
+    // 这里可接入后端分页API获取角色数据
+    initRolesPagination(rolesCurrentPage, rolesTotalPages, 1);
 }
 
 // 页面加载时初始化
+// 载入与渲染
+// 这些函数已移至 main.js 中，避免函数名冲突
+
+// 这些函数已移至 main.js 中，避免函数名冲突
+
+function populateRoleOptions(selectId) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const roles = window.__rolesCache || [];
+    sel.innerHTML = '<option value="">请选择角色</option>' + roles.map(r => `<option value="${r.id}">${r.role_name}</option>`).join('');
+}
+
+// submitNewUser 函数已移至 main.js 中
+
+// 数据加载逻辑已移至 main.js 中的 initializeSystemManagementPage 函数
+
+// 角色模态框事件监听器
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('系统管理页面已加载');
+    // 加载角色列表
+    loadRolesList();
 });
+
+// 导出函数到全局作用域
+window.showRoleForm = showRoleForm;
+window.closeRoleModal = closeRoleModal;
+window.saveRole = saveRole;
+window.editRole = editRole;
+window.deleteRole = deleteRole;
+window.loadRolesList = loadRolesList;
+window.renderRolesTable = renderRolesTable;
 </script>

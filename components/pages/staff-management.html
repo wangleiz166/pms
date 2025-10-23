@@ -1,7 +1,7 @@
 <!-- 人员管理页面 -->
 <div id="staff-managementPage" class="page" style="display: none;">
     <div class="page-header">
-        <h1>人员管理</h1>
+        <h1>员工列表</h1>
     </div>
 
     <div class="page-content">
@@ -9,7 +9,7 @@
         <div class="search-filters">
             <div class="filter-group">
                 <label>部门：</label>
-                <select class="filter-select" id="departmentFilter" onchange="filterByDepartment()">
+                <select class="filter-select" id="departmentFilter">
                     <option value="">全部部门</option>
                     <option value="技术部">技术部</option>
                     <option value="产品部">产品部</option>
@@ -21,7 +21,7 @@
             
             <div class="filter-group">
                 <label>搜索：</label>
-                <input type="text" id="employeeSearch" placeholder="员工姓名..." class="search-input">
+                <input type="text" id="employeeSearch" placeholder="员工姓名..." class="search-input" onkeypress="if(event.key==='Enter') searchEmployees()">
                 <button class="search-btn" onclick="searchEmployees()">搜索</button>
             </div>
         </div>
@@ -46,14 +46,14 @@
         </div>
 
         <!-- 分页控件 -->
-        <div class="pagination-container">
-            <div class="pagination-info" id="employee-pagination-info">显示第 1-10 条，共 0 条记录</div>
+        <div class="pagination-container" style="margin-top: 12px;">
+            <div class="pagination-info">
+                <span id="employee-pagination-info">显示第 1-10 条，共 0 条记录</span>
+            </div>
             <div class="pagination-controls">
-                <button class="pagination-btn" id="employee-prev-btn" onclick="changeEmployeePage(-1)" disabled>上一页</button>
-                <div class="pagination-pages" id="employee-pagination-pages">
-                    <!-- 动态生成页码 -->
-                </div>
-                <button class="pagination-btn" id="employee-next-btn" onclick="changeEmployeePage(1)">下一页</button>
+                <button class="pagination-btn" id="employee-prev-btn" disabled>上一页</button>
+                <div class="pagination-pages" id="employee-pagination-pages"></div>
+                <button class="pagination-btn" id="employee-next-btn">下一页</button>
             </div>
         </div>
     </div>

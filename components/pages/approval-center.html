@@ -4,31 +4,29 @@
         <h1>审核中心</h1>
     </div>
 
-    <!-- 审核类型切换 -->
+    <!-- 仅保留报工审核列表，无Tab切换 -->
     <div class="tab-container">
-        <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchApprovalTab('timesheet')">报工审核</button>
-            <button class="tab-btn" onclick="switchApprovalTab('budget')">项目预算审核</button>
-        </div>
-
-        <!-- 报工审核内容 -->
         <div id="timesheet-approval" class="tab-content active">
             <div class="card">
                 <div class="card-header">
                     <h3>待审核报工</h3>
-                    <div class="filter-controls">
-                        <select class="form-control">
-                            <option value="">所有状态</option>
-                            <option value="pending">待审核</option>
-                            <option value="approved">已通过</option>
-                            <option value="rejected">已驳回</option>
-                        </select>
-                        <input type="date" class="form-control" placeholder="选择日期">
-                        <button class="btn btn-secondary">筛选</button>
-                    </div>
                 </div>
                 <div class="card-body">
-                    <table class="data-table">
+                    <style>
+                        #approval-centerPage .data-table th,
+                        #approval-centerPage .data-table td {
+                            text-align: left !important;
+                        }
+                    </style>
+                    <table class="data-table" style="table-layout: fixed; width: 100%;">
+                        <colgroup>
+                            <col style="width: 12%;">  <!-- 姓名 -->
+                            <col style="width: 25%;">  <!-- 项目名称 -->
+                            <col style="width: 15%;">  <!-- 工作日期 -->
+                            <col style="width: 10%;">  <!-- 工时 -->
+                            <col style="width: 28%;">  <!-- 工作内容 -->
+                            <col style="width: 20%;">  <!-- 操作 -->
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th>姓名</th>
@@ -45,67 +43,14 @@
                     </table>
                     
                     <!-- 分页控件 -->
-                    <div class="pagination-container">
+                    <div class="pagination-container" style="margin-top: 12px;">
                         <div class="pagination-info">
                             <span id="timesheet-pagination-info">显示第 1-10 条，共 0 条记录</span>
                         </div>
                         <div class="pagination-controls">
-                            <button class="pagination-btn" id="timesheet-prev-btn" onclick="changeTimesheetPage(-1)">上一页</button>
-                            <div class="pagination-pages" id="timesheet-pagination-pages">
-                                <!-- 动态生成页码 -->
-                            </div>
-                            <button class="pagination-btn" id="timesheet-next-btn" onclick="changeTimesheetPage(1)">下一页</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 项目预算审核内容 -->
-        <div id="budget-approval" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h3>待审核预算</h3>
-                    <div class="filter-controls">
-                        <select class="form-control">
-                            <option value="">所有状态</option>
-                            <option value="pending">待审核</option>
-                            <option value="approved">已通过</option>
-                            <option value="rejected">已驳回</option>
-                        </select>
-                        <input type="date" class="form-control" placeholder="选择日期">
-                        <button class="btn btn-secondary">筛选</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>项目名称</th>
-                                <th>预算类型</th>
-                                <th>申请金额</th>
-                                <th>申请人</th>
-                                <th>申请日期</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="budget-approval-tbody">
-                            <!-- 动态加载的预算审核数据 -->
-                        </tbody>
-                    </table>
-                    
-                    <!-- 分页控件 -->
-                    <div class="pagination-container">
-                        <div class="pagination-info">
-                            <span id="budget-pagination-info">显示第 1-10 条，共 0 条记录</span>
-                        </div>
-                        <div class="pagination-controls">
-                            <button class="pagination-btn" id="budget-prev-btn" onclick="changeBudgetPage(-1)">上一页</button>
-                            <div class="pagination-pages" id="budget-pagination-pages">
-                                <!-- 动态生成页码 -->
-                            </div>
-                            <button class="pagination-btn" id="budget-next-btn" onclick="changeBudgetPage(1)">下一页</button>
+                            <button class="pagination-btn" id="timesheet-prev-btn">上一页</button>
+                            <div class="pagination-pages" id="timesheet-pagination-pages"></div>
+                            <button class="pagination-btn" id="timesheet-next-btn">下一页</button>
                         </div>
                     </div>
                 </div>

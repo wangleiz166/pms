@@ -240,7 +240,7 @@ function updateTeamDetailInfo(team) {
     if (createDateEl) createDateEl.textContent = team.createDate;
     if (statusEl) {
         statusEl.textContent = team.status === 'active' ? '活跃' : '非活跃';
-        statusEl.className = `status-badge ${team.status}`;
+        statusEl.className = '';
     }
 }
 
@@ -324,7 +324,7 @@ function renderTeamMembers(members) {
                 <div style="font-weight: 600; color: #2c3e50;">${member.hours}h</div>
             </td>
             <td>
-                <span class="status-badge ${member.status}">${member.status === 'active' ? '在线' : '离线'}</span>
+                <span>${member.status === 'active' ? '在线' : '离线'}</span>
             </td>
             <td>
                 <button class="btn btn-small" onclick="viewMemberDetail(${member.id})">查看</button>
@@ -377,9 +377,7 @@ function renderTeamTimesheet(data) {
             <td style="font-weight: 600; color: #2c3e50;">${item.hours}h</td>
             <td style="color: #7f8c8d;">${item.days}天</td>
             <td>
-                <span class="status-badge ${item.status === '已完成' ? 'completed' : 'active'}">
-                    ${item.status}
-                </span>
+                <span>${item.status}</span>
             </td>
             <td style="color: #7f8c8d; font-size: 12px;">${item.lastUpdate}</td>
         </tr>

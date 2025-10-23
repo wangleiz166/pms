@@ -1,8 +1,8 @@
-/* 左侧导航栏样式 */
+/* 左侧导航栏样式 - 现代化设计 */
 .sidebar-nav {
-    width: 240px;
-    background: white;
-    border-right: 1px solid #e8eaed;
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
     position: fixed;
     left: 0;
     top: 0;
@@ -11,102 +11,123 @@
     z-index: 1000;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #e1e5e9;
-    background: white;
-    color: #666;
+    padding: 24px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    background: #ffffff;
 }
 
 .sidebar-logo {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 16px;
-    font-weight: 700;
 }
 
 .sidebar-logo-icon {
-    width: 112px;
-    height: 34px;
-    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    flex-shrink: 0;
     overflow: hidden;
-    background: white;
 }
 
-.sidebar-logo-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+    /* 高端中文字体优先 */
+    font-family: "HarmonyOS Sans SC", "MiSans", "OPPO Sans", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    /* 浅色蓝渐变 */
+    background: linear-gradient(90deg, #2f80ed 0%, #56ccf2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* 轻微发光阴影提升质感 */
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
 }
 
 .sidebar-menu {
     flex: 1;
-    padding: 20px 0;
+    padding: 16px 0;
     overflow-y: auto;
 }
 
 .menu-section {
-    margin-bottom: 30px;
+    margin-bottom: 32px;
+}
+
+.menu-section:last-child {
+    margin-bottom: 0;
 }
 
 .menu-section-title {
-    padding: 0 20px 10px;
-    font-size: 12px;
-    color: #000;
+    padding: 0 20px 8px;
+    font-size: 11px;
+    color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     font-weight: 600;
+    margin-bottom: 4px;
 }
 
 .sidebar-menu-item {
-    display: block;
-    padding: 15px 20px;
-    text-decoration: none;
-    color: #000;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
     display: flex;
     align-items: center;
     gap: 12px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.2s ease;
     font-size: 14px;
-    background: #f5f5f5;
-    margin: 2px 8px;
-    border-radius: 6px;
-    border-left: none;
+    font-weight: 500;
+    border-radius: 0;
+    margin: 0;
+    background: transparent;
+    border-left: 3px solid transparent;
 }
 
 .sidebar-menu-item:hover {
-    background: #e8e8e8;
-    color: #000;
+    background: #f9fafb;
+    color: #111827;
 }
 
 .sidebar-menu-item.active {
-    background: #d0d0d0;
-    color: #000;
-    font-weight: 500;
+    background: #eff6ff;
+    color: #2563eb; /* 更浅的主色调蓝 */
+    border-left-color: #2563eb;
+    font-weight: 600;
 }
 
 .sidebar-menu-icon {
-    font-size: 16px;
     width: 20px;
-    text-align: center;
-    color: #000;
-    filter: grayscale(100%);
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-menu-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.sidebar-menu-item.active .sidebar-menu-icon svg {
+    color: #2563eb; /* 与文字一致的浅蓝 */
 }
 
 .sidebar-user {
-    margin-top: auto;
     padding: 20px;
-    border-top: 1px solid #e8eaed;
-    background: white;
+    border-top: 1px solid #f3f4f6;
+    background: #ffffff;
 }
 
 .user-info {
@@ -118,29 +139,111 @@
 .user-avatar {
     width: 36px;
     height: 36px;
+    background: #e5e7eb;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
 }
 
 .user-name {
+    font-size: 14px;
     font-weight: 500;
-    color: #000;
+    color: #374151;
+}
+
+.logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.reset-password-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-top: 12px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-password-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.logout-btn svg,
+.reset-password-btn svg {
+    flex-shrink: 0;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
     .sidebar-nav {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        width: 240px;
     }
+    
+    .sidebar-header {
+        padding: 20px 16px;
+    }
+    
+    .sidebar-menu {
+        padding: 12px 0;
+    }
+    
+    .sidebar-menu-item {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .sidebar-user {
+        padding: 16px;
+    }
+}
 
-    .sidebar-nav.open {
-        transform: translateX(0);
-    }
+/* 滚动条样式 */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }

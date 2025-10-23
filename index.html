@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PMS</title>
+    <!-- 使用data URI避免favicon 404错误 -->
+    <link rel="icon" href="data:,">
     
     <!-- CSS 样式文件 -->
     <link rel="stylesheet" href="css/main.css?v=20250117-login-fixed">
@@ -91,20 +93,47 @@
     <div id="notificationContainer"></div>
 
     <!-- JavaScript 文件 -->
-    <script src="js/component-loader.js?v=9"></script>
-    <script src="js/timesheet.js?v=20250117-current"></script>
-    <script src="js/project-management.js?v=6"></script>
-    <script src="js/staff-management.js?v=6"></script>
+    <script src="js/component-loader.js?v=11"></script>
+    <script src="js/timesheet.js?v=20250117-fix-layout"></script>
+    <script src="js/staff-management.js?v=7"></script>
     <script src="js/team-management.js?v=6"></script>
-    <script src="js/main.js?v=20250117-4"></script>
+    <script src="js/main.js?v=20250117-34"></script>
+    <script src="js/project-management.js?v=21"></script>
     <script src="js/ai-assistant.js?v=6"></script>
     
     <script>
+        // 优先根据 URL hash 定位当前页面（兜底，防止默认页覆盖）
+        // 注释掉这个监听器，避免与showMainApp中的switchPage重复调用
+        // window.addEventListener('DOMContentLoaded', () => {
+        //     const pageFromHash = location.hash.slice(1);
+        //     if (pageFromHash && typeof window.switchPage === 'function') {
+        //         
+        //         window.switchPage(pageFromHash);
+        //     }
+        // });
+
+        // 智能获取API基址 - 域名时不添加端口号
+        function getApiBase() {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            // 判断是否为域名（包含点号且不是IP地址）
+            const isDomain = hostname.includes('.') && !/^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+            
+            if (isDomain) {
+                // 域名时不添加端口号
+                return `${protocol}//${hostname}`;
+            } else {
+                // IP地址或localhost时添加端口号
+                return `${protocol}//${hostname}:5001`;
+            }
+        }
+
         // 验证现有session
         window.checkExistingSession = async function() {
             try {
-                console.log('检查现有session...');
-                const response = await fetch('http://127.0.0.1:5001/api/auth/verify', {
+                const apiBase = getApiBase();
+                const response = await fetch(`${apiBase}/api/auth/verify`, {
                     method: 'GET',
                     credentials: 'include'
                 });
@@ -112,12 +141,12 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    console.log('发现有效session，自动登录:', result.user);
+                    
                     // 存储用户信息
                     localStorage.setItem('pms_user', JSON.stringify(result.user));
                     return result.user;
                 } else {
-                    console.log('无有效session，需要登录');
+                    
                     return null;
                 }
             } catch (error) {
@@ -128,27 +157,26 @@
 
         // 应用初始化
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOM Content Loaded - Starting app initialization');
+            
             try {
                 // 首先检查是否有有效的session，在加载任何UI之前
-                console.log('检查现有session...');
                 const existingUser = await checkExistingSession();
                 
                 // 初始化组件加载器
-                console.log('Calling initializeApp...');
+                
                 await initializeApp();
                 
                 if (existingUser) {
                     // 有有效session，直接进入主应用，不显示登录页面
-                    console.log('发现有效session，直接进入主应用');
+                    
                     await showMainApp(existingUser);
                 } else {
                     // 没有有效session，显示登录页面
-                    console.log('无有效session，显示登录页面');
+                    
                     showLoginPage();
                 }
                 
-                console.log('App initialization completed successfully');
+                
             } catch (error) {
                 console.error('Application initialization failed:', error);
                 showErrorState('应用启动失败，请刷新页面重试');
@@ -158,7 +186,7 @@
         // 显示登录页面
         window.showLoginPage = async function() {
             try {
-                console.log('开始显示登录页面');
+                
                 
                 // 确保主应用隐藏
                 const mainApp = document.getElementById('mainApp');
@@ -175,7 +203,7 @@
                     loadingElement.style.display = 'none';
                 }
                 
-                console.log('登录页面加载完成');
+                
                 
             } catch (error) {
                 console.error('显示登录页面失败:', error);
@@ -206,10 +234,11 @@
             if (loginSpinner) loginSpinner.style.display = 'block';
             
             try {
-                console.log('发送登录请求:', {username, password: '***'});
+                
                 
                 // 调用后端登录API
-                const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
+                const apiBase = getApiBase();
+                const response = await fetch(`${apiBase}/api/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -221,8 +250,8 @@
                     })
                 });
                 
-                console.log('登录响应状态:', response.status);
-                console.log('登录响应头:', response.headers);
+                
+                
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -231,15 +260,20 @@
                 }
                 
                 const result = await response.json();
-                console.log('登录响应数据:', result);
+                
                 
                 if (result.success) {
-                    console.log('登录成功:', result.user);
+                    
                     
                     // 存储用户信息
                     localStorage.setItem('pms_user', JSON.stringify(result.user));
                     if (rememberMe) {
                         localStorage.setItem('pms_remember', 'true');
+                    }
+                    
+                    // 设置username cookie
+                    if (typeof setCookie === 'function') {
+                        setCookie('username', result.user.username || result.user.name || username, rememberMe ? 30 : 7);
                     }
                     
                     // 登录成功，显示主应用
@@ -262,7 +296,7 @@
         // 显示主应用
         window.showMainApp = async function(userInfo) {
             try {
-                console.log('显示主应用，用户信息:', userInfo);
+                
                 
                 // 强制隐藏登录页面（如果存在）
                 const loginPage = document.getElementById('loginPage');
@@ -272,7 +306,7 @@
                     loginPage.style.opacity = '0';
                     loginPage.style.zIndex = '-9999';
                     loginPage.remove(); // 直接从DOM中移除
-                    console.log('登录页面已完全移除');
+                    
                 }
                 
                 // 显示主应用
@@ -284,21 +318,106 @@
                     mainApp.style.position = 'relative';
                     mainApp.style.zIndex = '1';
                     mainApp.classList.add('active');
-                    console.log('主应用已显示');
+                    
                 } else {
                     console.error('找不到主应用元素');
                 }
                 
-                // 加载默认页面（工时管理）
-                console.log('开始加载工时管理页面...');
-                await window.componentLoader.loadPage('timesheet', '#pageContainer', 'replace', () => {
-                    console.log('工时页面加载完成，开始初始化...');
-                    if (typeof initializeTimesheetPage === 'function') {
-                        initializeTimesheetPage();
-                    }
-                });
+                // 从URL hash获取目标页面，如果没有则默认加载工时管理
+                const targetPage = window.location.hash.substring(1) || 'timesheet';
                 
-                console.log('主应用显示完成');
+                
+                // 使用switchPage统一处理页面切换（包括外部链接页面）
+                
+                await window.switchPage(targetPage);
+                
+                // 等待侧边栏加载完成后加载用户名和权限
+                setTimeout(async () => {
+                    
+                    const sidebarContainer = document.getElementById('sidebarContainer');
+                    const userElement = document.getElementById('currentUser');
+                    
+                    if (sidebarContainer && userElement) {
+                        
+                        
+                        // 加载用户名
+                        if (typeof loadUserFromCookie === 'function') {
+                            loadUserFromCookie();
+                        } else {
+                            console.error('loadUserFromCookie函数不存在');
+                            userElement.textContent = '王磊';
+                        }
+                        
+                        // 获取并应用用户权限
+                        if (typeof getCurrentUserPermissions === 'function') {
+                            
+                            await getCurrentUserPermissions();
+                            
+                        }
+                        
+                        // 根据当前页面激活侧边栏对应的菜单项
+                        const currentPage = window.location.hash.substring(1) || 'timesheet';
+                        
+                        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        const activeItem = document.querySelector(`.sidebar-menu-item[onclick*="'${currentPage}'"]`);
+                        if (activeItem) {
+                            activeItem.classList.add('active');
+                            
+                        }
+                        
+                    } else {
+                        
+                        // 如果侧边栏还没加载完成，再等一会儿
+                        setTimeout(async () => {
+                            
+                            
+                            if (typeof loadUserFromCookie === 'function') {
+                                loadUserFromCookie();
+                            } else {
+                                const userElement = document.getElementById('currentUser');
+                                if (userElement) {
+                                    userElement.textContent = '王磊';
+                                }
+                            }
+                            
+                            // 获取并应用权限
+                            if (typeof getCurrentUserPermissions === 'function') {
+                                await getCurrentUserPermissions();
+                            }
+                            
+                            // 根据当前页面激活侧边栏对应的菜单项
+                            const currentPage = window.location.hash.substring(1) || 'timesheet';
+                             console.log('激活侧边栏菜单项(retry):', currentPage);
+                            document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+                                item.classList.remove('active');
+                            });
+                            const activeItem = document.querySelector(`.sidebar-menu-item[onclick*="'${currentPage}'"]`);
+                            if (activeItem) {
+                                activeItem.classList.add('active');
+                                console.log('已激活侧边栏菜单项(retry):', currentPage);
+                            }
+                        }, 1000);
+                    }
+                }, 200);
+
+                // 全局更新一次审核中心数量
+                try {
+                    if (typeof window.updateApprovalCount === 'function') {
+                        window.updateApprovalCount();
+                    }
+                } catch (e) { console.warn('初始化更新审核数量失败:', e); }
+                
+                // 启动定期刷新权限（每5分钟检查一次权限变化）
+                if (typeof refreshUserPermissions === 'function') {
+                    setInterval(() => {
+                        refreshUserPermissions();
+                    }, 5 * 60 * 1000); // 5分钟
+                    
+                }
+                
+                
                 
             } catch (error) {
                 console.error('显示主应用失败:', error);
@@ -333,7 +452,7 @@
         
         // 忘记密码处理
         window.showForgotPassword = function() {
-            alert('请联系系统管理员重置密码\n邮箱: admin@company.com\n电话: 400-123-4567');
+            alert('请联系系统管理员 - 王磊-重置密码\n');
         };
         
         // 登出功能
@@ -344,29 +463,46 @@
             
             try {
                 // 调用后端登出API
-                const response = await fetch('http://127.0.0.1:5001/api/auth/logout', {
+                const apiBase = getApiBase();
+                const response = await fetch(`${apiBase}/api/auth/logout`, {
                     method: 'POST',
                     credentials: 'include'
                 });
                 
                 const result = await response.json();
-                console.log('登出结果:', result);
+                
+                
+            } catch (error) {
+                console.error('登出API失败:', error);
+            } finally {
+                // 无论API是否成功，都执行清理和跳转
                 
                 // 清除本地存储
                 localStorage.removeItem('pms_user');
                 localStorage.removeItem('pms_remember');
                 sessionStorage.clear();
                 
-                // 返回登录页面
-                showLoginPage();
+                // 清除username cookie
+                if (typeof setCookie === 'function') {
+                    setCookie('username', '', -1); // 设置为过期
+                }
                 
-            } catch (error) {
-                console.error('登出失败:', error);
-                // 即使API失败也清除本地数据
-                localStorage.removeItem('pms_user');
-                localStorage.removeItem('pms_remember');
-                sessionStorage.clear();
-                showLoginPage();
+                // 隐藏主应用
+                const mainApp = document.getElementById('mainApp');
+                if (mainApp) {
+                    mainApp.style.display = 'none';
+                }
+                
+                // 删除已存在的登录页面（避免重复）
+                const existingLoginPage = document.getElementById('loginPage');
+                if (existingLoginPage) {
+                    existingLoginPage.remove();
+                }
+                
+                // 重新加载登录页面
+                await showLoginPage();
+                
+                
             }
         };
         

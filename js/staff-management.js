@@ -1,50 +1,104 @@
 // 人员管理相关功能
 console.log('staff-management.js loaded successfully');
-const API_BASE_URL = 'http://127.0.0.1:5001';
+// 智能获取API基址 - 域名时不添加端口号
+const API_BASE_URL = (() => {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // 判断是否为域名（包含点号且不是IP地址）
+    const isDomain = hostname.includes('.') && !/^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+    
+    if (isDomain) {
+        // 域名时不添加端口号
+        return `${protocol}//${hostname}`;
+    } else {
+        // IP地址或localhost时添加端口号
+        return `${protocol}//${hostname}:5001`;
+    }
+})();
 
 // 全局变量
-let currentEmployeePage = 1;
-let totalEmployeePages = 1;
 let employeeSearchTerm = '';
 let currentEmployeeType = 'all';
 let currentDepartment = '';
+let employeePaginationManager = null;
+
+// 初始化员工分页管理器
+function initEmployeePagination() {
+    employeePaginationManager = new PaginationManager({
+        perPage: 10,
+        
+        fetchDataFunction: async (page, perPage) => {
+            console.log('[员工列表] 当前筛选条件 - 搜索词:', employeeSearchTerm, '部门:', currentDepartment);
+            
+            const params = new URLSearchParams({
+                page: page,
+                per_page: perPage,
+                search: employeeSearchTerm
+            });
+            
+            // 添加部门筛选参数
+            if (currentDepartment && currentDepartment !== '' && currentDepartment !== 'all') {
+                params.append('department', currentDepartment);
+                console.log('[员工列表] 添加department参数:', currentDepartment);
+            }
+            
+            console.log('[员工列表] 最终请求URL:', `${API_BASE_URL}/api/employees?${params}`);
+            const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    data: data.employees,
+                    pagination: {
+                        current_page: data.page,
+                        per_page: perPage,
+                        total_count: data.total,
+                        total_pages: data.pages,
+                        has_prev: data.page > 1,
+                        has_next: data.page < data.pages
+                    }
+                };
+            }
+            throw new Error('获取员工列表失败');
+        },
+        
+        updateTableFunction: (employees) => {
+            updateEmployeeListTable(employees);
+        },
+        
+        paginationInfoId: 'employee-pagination-info',
+        paginationPagesId: 'employee-pagination-pages',
+        prevButtonId: 'employee-prev-btn',
+        nextButtonId: 'employee-next-btn',
+        
+        debug: false
+    });
+    
+    return employeePaginationManager;
+}
 
 // 页面初始化（绑定到全局，确保 main.js 可访问）
 window.initializeStaffManagementPage = function() {
     console.log('Staff management page initializer called');
-    loadEmployeeList();
+    if (!employeePaginationManager) {
+        initEmployeePagination();
+    }
+    employeePaginationManager.reset();
     loadDepartments();
 };
 
-// 加载员工列表
-async function loadEmployeeList(page = 1) {
-    console.log('Loading employee list for page:', page);
+// 兼容旧的加载员工列表函数
+function loadEmployeeList(page = 1) {
+    // 如果分页管理器未初始化，先初始化
+    if (!employeePaginationManager) {
+        initEmployeePagination();
+    }
     
-    try {
-        const params = new URLSearchParams({
-            page: page,
-            per_page: 10,
-            search: employeeSearchTerm
-        });
-        
-        const response = await fetch(`${API_BASE_URL}/api/employees?${params}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Received employee data:', data);
-        
-        updateEmployeeListTable(data.employees);
-        updateEmployeePagination(data.total, data.page, data.pages);
-        
-        currentEmployeePage = data.page;
-        totalEmployeePages = data.pages;
-        
-    } catch (error) {
-        console.error('Error loading employee list:', error);
-        showNotification('加载员工列表失败: ' + error.message, 'error');
+    if (page === 1) {
+        employeePaginationManager.reset();
+    } else {
+        employeePaginationManager.changePage(page);
     }
 }
 
@@ -65,75 +119,21 @@ function updateEmployeeListTable(employees) {
             <td>${employee.department || '未分配部门'}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn board-btn" onclick="openTimesheetBoard(${employee.id})">报工看板</button>
-                    <button class="action-btn edit-btn" onclick="editEmployee(${employee.id})">编辑</button>
-                    <button class="action-btn delete-btn" onclick="deleteEmployee(${employee.id})">删除</button>
+                    <button class="action-btn view-btn" onclick="viewEmployeeTimesheet(${employee.id}, '${employee.name}')">查看报工明细</button>
                 </div>
             </td>
         </tr>
     `).join('');
 }
 
-// 更新分页信息
-function updateEmployeePagination(total, page, pages) {
-    const start = (page - 1) * 10 + 1;
-    const end = Math.min(page * 10, total);
-    
-    const paginationInfo = document.getElementById('employee-pagination-info');
-    if (paginationInfo) {
-        paginationInfo.textContent = `显示第 ${start}-${end} 条，共 ${total} 条记录`;
-    }
-    
-    // 更新分页按钮状态
-    const prevBtn = document.getElementById('employee-prev-btn');
-    const nextBtn = document.getElementById('employee-next-btn');
-    
-    if (prevBtn) {
-        prevBtn.disabled = page <= 1;
-    }
-    if (nextBtn) {
-        nextBtn.disabled = page >= pages;
-    }
-    
-    // 生成页码按钮
-    updateEmployeePaginationPages(page, pages);
-}
-
-// 更新分页页码
-function updateEmployeePaginationPages(currentPage, totalPages) {
-    const paginationPages = document.getElementById('employee-pagination-pages');
-    if (!paginationPages) return;
-    
-    let pagesHtml = '';
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage + 1 < maxVisiblePages) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        const activeClass = i === currentPage ? 'active' : '';
-        pagesHtml += `<button class="pagination-btn ${activeClass}" onclick="changeEmployeePage(${i})">${i}</button>`;
-    }
-    
-    paginationPages.innerHTML = pagesHtml;
-}
-
-// 切换员工页面
+// 兼容旧的切换页面函数
 function changeEmployeePage(page) {
-    if (page < 1 || page > totalEmployeePages) return;
-    loadEmployeeList(page);
-}
-
-// 搜索员工
-function searchEmployees() {
-    const searchInput = document.getElementById('employeeSearch');
-    if (searchInput) {
-        employeeSearchTerm = searchInput.value.trim();
-        loadEmployeeList(1);
+    // 如果分页管理器未初始化，先初始化
+    if (!employeePaginationManager) {
+        initEmployeePagination();
     }
+    
+    employeePaginationManager.changePage(page);
 }
 
 // 加载部门列表
@@ -177,16 +177,9 @@ function deleteEmployee(employeeId) {
     showNotification('删除功能暂未开放', 'info');
 }
 
-// 报工看板 - 新标签页打开
-function openTimesheetBoard(employeeId) {
-    console.log('打开报工看板:', employeeId);
-    window.open('http://10.10.201.76:8100/#/de-link/PLgPsH9r', '_blank');
-}
-
 // 按员工类型筛选
 function filterByType(type) {
     currentEmployeeType = type;
-    currentEmployeePage = 1;
     
     // 更新按钮状态
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -194,32 +187,52 @@ function filterByType(type) {
     });
     document.querySelector(`[data-type="${type}"]`).classList.add('active');
     
-    // 重新加载数据
-    loadEmployeeList();
+    // 如果分页管理器未初始化，先初始化
+    if (!employeePaginationManager) {
+        initEmployeePagination();
+    }
+    
+    // 重置到第一页并重新加载数据
+    employeePaginationManager.reset();
 }
 
-// 按部门筛选
+// 按部门筛选（只保存值，不立即请求）
 function filterByDepartment() {
     const select = document.getElementById('departmentFilter');
     currentDepartment = select.value;
-    currentEmployeePage = 1;
-    
-    // 重新加载数据
-    loadEmployeeList();
+    // 不再立即请求，等待用户点击搜索按钮
 }
 
-// 搜索员工
+// 搜索员工（点击搜索按钮时才请求）
 function searchEmployees() {
     const searchInput = document.getElementById('employeeSearch');
     employeeSearchTerm = searchInput.value.trim();
-    currentEmployeePage = 1;
     
-    // 重新加载数据
-    loadEmployeeList();
+    // 获取部门筛选值
+    const departmentSelect = document.getElementById('departmentFilter');
+    if (departmentSelect) {
+        currentDepartment = departmentSelect.value;
+        console.log('[搜索员工] 从下拉框获取到的部门值:', currentDepartment);
+    } else {
+        console.warn('[搜索员工] 找不到departmentFilter元素');
+    }
+    
+    console.log('[搜索员工] 搜索词:', employeeSearchTerm, '部门:', currentDepartment);
+    
+    // 如果分页管理器未初始化，先初始化
+    if (!employeePaginationManager) {
+        console.log('[搜索员工] 分页管理器未初始化，正在初始化...');
+        initEmployeePagination();
+    }
+    
+    // 重置到第一页并重新加载数据（会自动带上department参数）
+    employeePaginationManager.reset();
 }
 
 // 将新函数暴露到全局作用域
 window.filterByType = filterByType;
 window.filterByDepartment = filterByDepartment;
 window.searchEmployees = searchEmployees;
-window.openTimesheetBoard = openTimesheetBoard;
+window.loadEmployeeList = loadEmployeeList;
+window.updateEmployeeListTable = updateEmployeeListTable;
+window.changeEmployeePage = changeEmployeePage;

@@ -3,11 +3,11 @@
     <div class="page-header">
         <h1>项目管理</h1>
         <div class="page-actions">
-            <button class="btn btn-primary" onclick="showProjectForm()">
+            <button class="btn btn-primary" id="btn-add-project">
                 <span class="btn-icon">+</span>
                 新增项目
             </button>
-            <button class="btn btn-secondary" onclick="loadProjectList()">
+            <button class="btn btn-secondary" id="btn-refresh-projects">
                 <span class="btn-icon">🔄</span>
                 刷新
             </button>
@@ -19,16 +19,19 @@
         <div class="search-filters">
             <div class="filter-group">
                 <label>项目类型：</label>
-                <select class="filter-select" id="projectTypeFilter" onchange="filterProjectType()">
+                <select class="filter-select" id="projectTypeFilter">
                     <option value="">全部</option>
-                    <option value="交付型">交付型</option>
+                    <option value="1">售前类</option>
+                    <option value="2">交付类</option>
+                    <option value="3">运维类</option>
+                    <option value="4">内部项目</option>
                 </select>
             </div>
 
             <div class="filter-group">
                 <label>搜索：</label>
                 <input type="text" id="projectSearch" placeholder="项目编码/项目名称..." class="search-input">
-                <button class="search-btn" onclick="searchProjects()">搜索</button>
+                <button class="search-btn" id="btn-search-projects">搜索</button>
             </div>
         </div>
 
@@ -41,34 +44,52 @@
                 </div>
             </div>
             
-            <table class="data-table equal-cols-8">
+            <style>
+                #project-managementPage .data-table th,
+                #project-managementPage .data-table td {
+                    text-align: left !important;
+                }
+                #project-managementPage .data-table th:first-child,
+                #project-managementPage .data-table td:first-child {
+                    text-align: center !important;
+                }
+            </style>
+            <table class="data-table" style="table-layout: fixed; width: 100%;">
+                <colgroup>
+                    <col style="width: 8%;">   <!-- 序号 -->
+                    <col style="width: 18%;">  <!-- 项目编码 -->
+                    <col style="width: 22%;">  <!-- 项目名称 -->
+                    <col style="width: 15%;">  <!-- 项目经理 -->
+                    <col style="width: 12%;">  <!-- 项目类型 -->
+                    <col style="width: 10%;">  <!-- 预算人天 -->
+                    <col style="width: 15%;">  <!-- 操作 -->
+                </colgroup>
                 <thead>
                     <tr>
-                        <th style="text-align: center; white-space: nowrap;">序号</th>
-                        <th style="white-space: nowrap; text-align: left;">项目编码</th>
-                        <th style="white-space: nowrap; text-align: left;">项目名称</th>
-                        <th style="white-space: nowrap; text-align: left;">项目经理</th>
-                        <th style="white-space: nowrap; text-align: left;">项目类型</th>
-                        <th style="white-space: nowrap; text-align: left;">预算人天</th>
-                        <th style="white-space: nowrap; text-align: left;">报工人天</th>
-                        <th class="op-col" style="white-space: nowrap; text-align: left;">操作</th>
+                        <th>序号</th>
+                        <th>项目编码</th>
+                        <th>项目名称</th>
+                        <th>项目经理</th>
+                        <th>项目类型</th>
+                        <th>预算人天</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="project-list-tbody">
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #999;">正在加载数据...</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- 分页控件 -->
-        <div class="pagination">
+        <!-- 分页控件（统一为系统管理样式） -->
+        <div class="pagination-container" style="margin-top: 12px;">
             <div class="pagination-info" id="project-pagination-info">显示第 1-10 条，共 0 条记录</div>
             <div class="pagination-controls">
-                <button class="pagination-btn" id="project-prev-btn" onclick="changeProjectPage(-1)" disabled>上一页</button>
-                <div id="project-pagination-pages"></div>
-                <button class="pagination-btn" id="project-next-btn" onclick="changeProjectPage(1)">下一页</button>
+                <button class="pagination-btn" id="project-prev-btn" disabled>上一页</button>
+                <div id="project-pagination-pages" class="pagination-pages"></div>
+                <button class="pagination-btn" id="project-next-btn">下一页</button>
             </div>
         </div>
     </div>
@@ -76,35 +97,61 @@
 
 <!-- 项目表单模态框 -->
 <div id="projectModal" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 520px;">
         <div class="modal-header">
             <h3>项目信息</h3>
-            <span class="close" onclick="closeProjectModal()">&times;</span>
+            <span class="close" id="btn-project-modal-x">&times;</span>
         </div>
         <div class="modal-body">
             <form id="projectForm">
                 <div class="form-group">
-                    <label for="projectName">项目名称</label>
-                    <input type="text" id="projectName" name="projectName" required>
+                    <label for="projectName">项目名称 <span style="color: red;">*</span></label>
+                    <input type="text" id="projectName" name="projectName" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label for="projectCode">项目编码</label>
-                    <input type="text" id="projectCode" name="projectCode" required>
-                </div>
-                <div class="form-group">
-                    <label for="projectStatus">项目状态</label>
-                    <select id="projectStatus" name="projectStatus" required>
-                        <option value="planning">规划中</option>
-                        <option value="active">进行中</option>
-                        <option value="completed">已完成</option>
-                        <option value="paused">已暂停</option>
+                    <label for="projectManager">项目经理 <span style="color: red;">*</span></label>
+                    <select id="projectManager" name="projectManager" class="form-select" required>
+                        <option value="">请选择项目经理</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="projectCategory">项目大类 <span style="color: red;">*</span></label>
+                    <select id="projectCategory" name="projectCategory" class="form-select" required>
+                        <option value="">请选择项目大类</option>
+                        <option value="W">外部项目 (W)</option>
+                        <option value="N">内部项目 (N)</option>
+                        <option value="Y">研发项目 (Y)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="projectType">项目类型 <span style="color: red;">*</span></label>
+                    <select id="projectType" name="projectType" class="form-select" required>
+                        <option value="1">售前类</option>
+                        <option value="2">交付类</option>
+                        <option value="3">运维类</option>
+                        <option value="4">内部项目</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="businessUnitCode">业务单元代码 <span style="color: red;">*</span></label>
+                    <input type="text" id="businessUnitCode" name="businessUnitCode" class="form-input" placeholder="如 HQ / BU / PJ" required>
+                </div>
+                <div class="form-group">
+                    <label for="clientOrDeptCode">客户/部门编码 <span style="color: red;">*</span></label>
+                    <input type="text" id="clientOrDeptCode" name="clientOrDeptCode" class="form-input" placeholder="如 GW01 / FD01" required>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="isAnnualProject" name="isAnnualProject" style="margin: 0;">
+                        <span>是否为年度项目</span>
+                    </label>
+                </div>
+                
             </form>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeProjectModal()">取消</button>
-            <button class="btn btn-primary" onclick="saveProject()">保存</button>
+            <button class="btn btn-secondary" id="btn-project-cancel">取消</button>
+            <button class="btn btn-primary" id="btn-project-save">保存</button>
         </div>
     </div>
 </div>
@@ -119,39 +166,17 @@
         <div class="modal-body">
             <!-- 新增成员表单 -->
             <div class="form-section" style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                <h4 style="margin: 0 0 12px 0; font-size: 16px; color: #333;">新增项目成员</h4>
                 <div class="form-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="font-size: 13px; margin-bottom: 4px;">项目角色</label>
-                        <select id="pmProjectRole" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                        <select id="pmProjectRole" class="form-select" style="padding: 6px 8px; font-size: 13px;">
                             <option value="">请选择项目角色</option>
-                            <option value="项目经理">项目经理</option>
-                            <option value="技术负责人">技术负责人</option>
-                            <option value="开发工程师">开发工程师</option>
-                            <option value="测试工程师">测试工程师</option>
-                            <option value="UI设计师">UI设计师</option>
-                            <option value="产品经理">产品经理</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-size: 13px; margin-bottom: 4px;">人员类型</label>
-                        <select id="pmPersonnelType" class="form-input" style="padding: 6px 8px; font-size: 13px;">
-                            <option value="">请选择人员类型</option>
-                            <option value="内部员工">内部员工</option>
-                            <option value="外包人员">外包人员</option>
-                            <option value="临时工">临时工</option>
-                            <option value="实习生">实习生</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="font-size: 13px; margin-bottom: 4px;">成员</label>
-                        <select id="pmMember" class="form-input" style="padding: 6px 8px; font-size: 13px;">
+                        <select id="pmMember" class="form-select" style="padding: 6px 8px; font-size: 13px;">
                             <option value="">请选择成员</option>
-                            <option value="张三">张三</option>
-                            <option value="李四">李四</option>
-                            <option value="王五">王五</option>
-                            <option value="赵六">赵六</option>
-                            <option value="钱七">钱七</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -177,11 +202,40 @@
             <div class="members-list-section">
                 <h4 style="margin: 0 0 16px 0; font-size: 16px; color: #333;">项目成员列表</h4>
                 <div class="table-container">
-                    <table class="data-table" style="border-spacing: 0; border-collapse: separate;">
+                    <style>
+                        #projectMembersModal .data-table th,
+                        #projectMembersModal .data-table td {
+                            text-align: left !important;
+                        }
+                        
+                        #projectMembersModal .data-table td .action-buttons {
+                            display: flex;
+                            gap: 8px;
+                            align-items: center;
+                            flex-wrap: nowrap;
+                            white-space: nowrap;
+                        }
+                        
+                        #projectMembersModal .data-table td .action-btn {
+                            padding: 4px 10px;
+                            font-size: 12px;
+                            white-space: nowrap;
+                            min-width: auto;
+                            flex-shrink: 0;
+                        }
+                    </style>
+                    <table class="data-table" style="table-layout: fixed; width: 100%; border-spacing: 0; border-collapse: separate;">
+                        <colgroup>
+                            <col style="width: 14%;">  <!-- 项目角色 -->
+                            <col style="width: 18%;">  <!-- 成员 -->
+                            <col style="width: 16%;">  <!-- 进入日期 -->
+                            <col style="width: 16%;">  <!-- 撤出日期 -->
+                            <col style="width: 12%;">  <!-- 预算人天 -->
+                            <col style="width: 24%;">  <!-- 操作 -->
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">项目角色</th>
-                                <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">人员类型</th>
                                 <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">成员</th>
                                 <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">进入日期</th>
                                 <th style="padding: 16px 12px; background: #f5f5f5; border-bottom: 2px solid #e0e0e0;">撤出日期</th>
@@ -191,7 +245,7 @@
                         </thead>
                         <tbody id="projectMembersList">
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 20px; color: #999;">暂无成员数据</td>
+                                <td colspan="6" style="text-align: center; padding: 20px; color: #999;">暂无成员数据</td>
                             </tr>
                         </tbody>
                     </table>

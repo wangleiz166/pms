@@ -716,11 +716,30 @@ body {
 }
 
 .form-select {
+    width: 100%;
+    padding: 8px 40px 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 12px center;
     background-repeat: no-repeat;
     background-size: 16px;
-    padding-right: 40px;
+    transition: all 0.3s ease;
+}
+
+/* 隐藏 IE/Edge 的默认箭头 */
+select.form-select::-ms-expand {
+    display: none;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 .form-textarea {
@@ -1691,7 +1710,6 @@ body {
 }
 
 .form-input,
-.form-select,
 textarea {
     width: 100%;
     padding: 8px 12px;
@@ -1701,7 +1719,6 @@ textarea {
 }
 
 .form-input:focus,
-.form-select:focus,
 textarea:focus {
     outline: none;
     border-color: #4A90E2;
